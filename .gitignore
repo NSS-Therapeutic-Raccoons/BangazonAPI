@@ -1,0 +1,12 @@
+﻿node_modules
+bower_components
+__pycache__
+*.pyc
+bin
+obj
+*.db
+*.sqlite3
+.vscode
+.vs
+*appsettings.json
+*appsettings.Development.json
