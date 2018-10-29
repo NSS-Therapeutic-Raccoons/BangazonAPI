@@ -1,4 +1,14 @@
-﻿using System;
+﻿/*
+    Author: Mike Parrish
+    Purpose: API Controller that allows a client to: 
+            GET all Payment types from DB, 
+            GET a single payment type, 
+            POST a new payment type to the DB, 
+            PUT (edit) and existing payment type in the DB, and 
+            DELETE a payment type from the DB 
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
