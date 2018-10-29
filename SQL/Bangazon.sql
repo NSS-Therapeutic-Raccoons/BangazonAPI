@@ -136,6 +136,7 @@ CREATE TABLE OrderProduct (
     CONSTRAINT FK_OrderProduct_Order FOREIGN KEY(OrderId) REFERENCES [Order](Id)
 );
 
+<<<<<<< HEAD
 insert into ProductType (Name) values ('Weapons');
 insert into ProductType (Name) values ('DVDs');
 insert into ProductType (Name) values ('CDs');
@@ -143,3 +144,58 @@ insert into ProductType (Name) values ('AircraftCarriers');
 insert into ProductType (Name) values ('Books');
 
 */
+=======
+
+INSERT INTO Customer (FirstName,LastName) VALUES ('George', 'Constanza');
+INSERT INTO Customer (FirstName,LastName) VALUES ('Jeremiah','Pritchard');
+INSERT INTO Customer (FirstName,LastName) VALUES ('Ricky','Bruner');
+INSERT INTO Customer (FirstName,LastName) VALUES ('Klaus','Hardt');
+INSERT INTO Customer (FirstName,LastName) VALUES ('Mike','Parrish');
+
+
+INSERT INTO PaymentType 
+(AcctNumber, [Name], CustomerId)
+VALUES 
+(12345678, 'Visa', 1);
+
+INSERT INTO PaymentType 
+(AcctNumber, [Name], CustomerId)
+VALUES 
+(456789123, 'MasterCard', 2);
+
+INSERT INTO PaymentType 
+(AcctNumber, [Name], CustomerId)
+VALUES 
+(789456123, 'Amex', 3);
+
+INSERT INTO PaymentType 
+(AcctNumber, [Name], CustomerId)
+VALUES 
+(147258369, 'MikeCard', 4);
+
+INSERT INTO ProductType (Name) VALUES ('Weapons');
+INSERT INTO ProductType (Name) VALUES ('DVDs');
+INSERT INTO ProductType (Name) VALUES ('CDs');
+INSERT INTO ProductType (Name) VALUES ('AircraftCarriers');
+INSERT INTO ProductType (Name) VALUES ('Books');
+
+INSERT INTO Product
+(ProductTypeId, CustomerId, Price, Title, [Description], Quantity)
+VALUES
+(1, 4, 99, 'Klaus''s Cheap Headphones', 'Some really lame and cheap headphones', 2);
+
+INSERT INTO Product
+(ProductTypeId, CustomerId, Price, Title, [Description], Quantity)
+VALUES
+(1, 3, 79, 'Ricky''s Superior Headphones', 'Really just better than Klause''s in every way', 2);
+
+INSERT INTO Product
+(ProductTypeId, CustomerId, Price, Title, [Description], Quantity)
+VALUES
+(2, 2, 19, 'Jeremiah''s bands cd', 'its music', 8);
+
+INSERT INTO Product
+(ProductTypeId, CustomerId, Price, Title, [Description], Quantity)
+VALUES
+(4, 5, 79, 'Mike''s Delivery Plane', 'An aircraft carrier that deploys code all around the world', 2);
+>>>>>>> master
