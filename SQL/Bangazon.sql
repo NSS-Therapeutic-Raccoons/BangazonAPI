@@ -1,3 +1,4 @@
+
 DELETE FROM OrderProduct;
 DELETE FROM ComputerEmployee;
 DELETE FROM EmployeeTraining;
@@ -136,6 +137,9 @@ CREATE TABLE OrderProduct (
 );
 
 
+
+
+
 INSERT INTO Customer (FirstName,LastName) VALUES ('George', 'Constanza');
 INSERT INTO Customer (FirstName,LastName) VALUES ('Jeremiah','Pritchard');
 INSERT INTO Customer (FirstName,LastName) VALUES ('Ricky','Bruner');
@@ -188,3 +192,4 @@ INSERT INTO Product
 (ProductTypeId, CustomerId, Price, Title, [Description], Quantity)
 VALUES
 (4, 5, 79, 'Mike''s Delivery Plane', 'An aircraft carrier that deploys code all around the world', 2);
+
