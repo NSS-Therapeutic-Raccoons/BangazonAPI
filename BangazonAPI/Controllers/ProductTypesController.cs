@@ -51,7 +51,7 @@ namespace BangazonAPI.Controllers
             using (IDbConnection conn = Connection)
             {
 
-                IEnumerable<ProductTypes> productTypes = await conn.QueryAsync<ProductTypes>(
+                IEnumerable<ProductType> productTypes = await conn.QueryAsync<ProductType>(
                     sql);
                
                 return Ok(productTypes);
@@ -72,14 +72,14 @@ namespace BangazonAPI.Controllers
 
             using (IDbConnection conn = Connection)
             {
-                IEnumerable<ProductTypes> productTypes = await conn.QueryAsync<ProductTypes>(sql);
+                IEnumerable<ProductType> productTypes = await conn.QueryAsync<ProductType>(sql);
                 return Ok(productTypes.Single());
             }
         }
         
         // POST api/ProductTypes
         [HttpPost]
-        public async Task<IActionResult> Post([FromBody] ProductTypes productTypes)
+        public async Task<IActionResult> Post([FromBody] ProductType productTypes)
         {
             string sql = $@"INSERT INTO ProductType
             (Name)
@@ -100,7 +100,7 @@ namespace BangazonAPI.Controllers
         
         // PUT api/productTypes/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> Put(int id, [FromBody] ProductTypes productTypes)
+        public async Task<IActionResult> Put(int id, [FromBody] ProductType productTypes)
         {
             string sql = $@"
             UPDATE ProductType
@@ -156,7 +156,7 @@ namespace BangazonAPI.Controllers
             string sql = $"SELECT Id FROM ProductType WHERE Id = {id}";
             using (IDbConnection conn = Connection)
             {
-                return conn.Query<ProductTypes>(sql).Count() > 0;
+                return conn.Query<ProductType>(sql).Count() > 0;
             }
         }
 
