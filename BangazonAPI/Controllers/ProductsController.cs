@@ -1,4 +1,14 @@
-﻿using System;
+﻿/*
+    Author: Ricky Bruner
+    Purpose: API Controller that allows a client to: 
+            GET all products from DB, 
+            GET a single Product, 
+            POST a new Product to the DB, 
+            PUT (edit) and existing Product in the DB, and 
+            DELETE a Product from the DB 
+*/
+
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
@@ -33,14 +43,14 @@ namespace BangazonAPI.Controllers
             }
         }
 
-        // GET api/Products
+        // GET api/Products returns all products
         [HttpGet]
         public async Task<IActionResult> Get()
         {
             string sql = @"
             SELECT
                 p.Id,
-                p.PaymentTypeId,
+                p.ProductTypeId,
                 p.CustomerId,
                 p.Price,
                 p.Title,
@@ -57,14 +67,14 @@ namespace BangazonAPI.Controllers
             }
         }
 
-        // GET api/Products/1
+        // GET api/Products/1 returns product with given Id
         [HttpGet("{id}", Name = "GetProduct")]
         public async Task<IActionResult> Get([FromRoute]int id)
         {
             string sql = $@"
             SELECT
                 p.Id,
-                p.PaymentTypeId,
+                p.ProductTypeId,
                 p.CustomerId,
                 p.Price,
                 p.Title,
@@ -76,27 +86,101 @@ namespace BangazonAPI.Controllers
 
             using (IDbConnection conn = Connection)
             {
-                IEnumerable<Product> students = await conn.QueryAsync<Product>(sql);
-                return Ok(students);
+                IEnumerable<Product> products = await conn.QueryAsync<Product>(sql);
+                return Ok(products.Single());
             }
         }
 
-        // POST api/values
+        // POST api/products adds a new Product
         [HttpPost]
-        public void Post([FromBody] string value)
+        public async Task<IActionResult> Post([FromBody] Product product)
         {
+            string sql = $@"INSERT INTO Product 
+            (ProductTypeId, CustomerId, Price, Title, Description, Quantity)
+            VALUES
+            (
+                '{product.ProductTypeId}',
+                '{product.CustomerId}',
+                '{product.Price}',
+                '{product.Title}',
+                '{product.Description}',
+                '{product.Quantity}'
+            );
+            SELECT SCOPE_IDENTITY();";
+
+            using (IDbConnection conn = Connection)
+            {
+                var newId = (await conn.QueryAsync<int>(sql)).Single();
+                product.Id = newId;
+                return CreatedAtRoute("GetProduct", new { id = newId }, product);
+            }
         }
 
-        // PUT api/values/5
+        // PUT api/Products/5 replaces a Product with the given Id
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        public async Task<IActionResult> Put(int id, [FromBody] Product product)
         {
+            string sql = $@"
+            UPDATE Product
+            SET ProductTypeId = '{product.ProductTypeId}',
+                CustomerId = '{product.CustomerId}',
+                Price = '{product.Price}',
+                Title = '{product.Title}',
+                Description = '{product.Description}',
+                Quantity = '{product.Quantity}'
+            WHERE Id = {id}";
+
+            try
+            {
+                using (IDbConnection conn = Connection)
+                {
+                    int rowsAffected = await conn.ExecuteAsync(sql);
+                    if (rowsAffected > 0)
+                    {
+                        return new StatusCodeResult(StatusCodes.Status204NoContent);
+                    }
+                    throw new Exception("No rows affected");
+                }
+            }
+            catch (Exception)
+            {
+                if (!ProductExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
         }
 
-        // DELETE api/values/5
+        // DELETE api/products/5 removes the product with the given Id
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
+            string sql = $@"DELETE FROM Product WHERE Id = {id}";
+
+            using (IDbConnection conn = Connection)
+            {
+                int rowsAffected = await conn.ExecuteAsync(sql);
+                if (rowsAffected > 0)
+                {
+                    return new StatusCodeResult(StatusCodes.Status204NoContent);
+                }
+                throw new Exception("No rows affected");
+            }
+
+        }
+
+        // bool for try/catch
+        private bool ProductExists(int id)
+        {
+            string sql = $"SELECT Id FROM Product WHERE Id = {id}";
+            using (IDbConnection conn = Connection)
+            {
+                return conn.Query<Product>(sql).Count() > 0;
+            }
         }
     }
 }
