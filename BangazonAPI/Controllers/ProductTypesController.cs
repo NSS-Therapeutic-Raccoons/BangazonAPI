@@ -38,7 +38,7 @@ namespace BangazonAPI.Controllers
 
         // GET api/productTypes
         [HttpGet]
-        public async Task<IActionResult> Get(string q)
+        public async Task<IActionResult> Get()
         {
             string sql = @"
             SELECT
