@@ -55,28 +55,109 @@ namespace BangazonAPI.Controllers
         }
 
         // GET api/paymenttypes/5
-        [HttpGet("{id}")]
-        public ActionResult<string> Get(int id)
+        [HttpGet("{id}", Name = "GetPaymentType")]
+        public async Task<IActionResult> Get([FromRoute]int id)
         {
-            return "value";
+            string sql = $@"
+            SELECT
+                p.Id,
+                p.AcctNumber,
+                p.Name,
+                p.CustomerId
+            FROM PaymentType p
+            WHERE p.Id = {id}
+            ";
+
+            using (IDbConnection conn = Connection)
+            {
+                IEnumerable<PaymentType> paymentTypes = await conn.QueryAsync<PaymentType>(sql);
+                return Ok(paymentTypes.Single());
+            }
         }
 
         // POST api/paymenttypes
         [HttpPost]
-        public void Post([FromBody] string value)
+        public async Task<IActionResult> Post([FromBody] PaymentType paymentType)
         {
+            string sql = $@"INSERT INTO PaymentType 
+            (AcctNumber, Name, CustomerId)
+            VALUES
+            (
+                '{paymentType.AcctNumber}'
+                ,'{paymentType.Name}'
+                ,'{paymentType.CustomerId}'
+            );
+            SELECT SCOPE_IDENTITY();";
+
+            using (IDbConnection conn = Connection)
+            {
+                var newId = (await conn.QueryAsync<int>(sql)).Single();
+                paymentType.Id = newId;
+                return CreatedAtRoute("GetPaymentType", new { id = newId }, paymentType);
+            }
         }
 
         // PUT api/paymenttypes/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        public async Task<IActionResult> Put(int id, [FromBody] PaymentType paymentType)
         {
+            string sql = $@"
+            UPDATE Instructor
+            SET AcctNumber = '{paymentType.AcctNumber}',
+                Name = '{paymentType.Name}',
+                CustomerId = '{paymentType.CustomerId}'
+            WHERE Id = {id}";
+
+            try
+            {
+                using (IDbConnection conn = Connection)
+                {
+                    int rowsAffected = await conn.ExecuteAsync(sql);
+                    if (rowsAffected > 0)
+                    {
+                        return new StatusCodeResult(StatusCodes.Status204NoContent);
+                    }
+                    throw new Exception("No rows affected");
+                }
+            }
+            catch (Exception)
+            {
+                if (!PaymentTypeExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
         }
 
         // DELETE api/values/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
+            string sql = $@"DELETE FROM PaymentType WHERE Id = {id}";
+
+            using (IDbConnection conn = Connection)
+            {
+                int rowsAffected = await conn.ExecuteAsync(sql);
+                if (rowsAffected > 0)
+                {
+                    return new StatusCodeResult(StatusCodes.Status204NoContent);
+                }
+                throw new Exception("No rows affected");
+            }
+
+        }
+
+        private bool PaymentTypeExists(int id)
+        {
+            string sql = $"SELECT Id FROM PaymentType WHERE Id = {id}";
+            using (IDbConnection conn = Connection)
+            {
+                return conn.Query<PaymentType>(sql).Count() > 0;
+            }
         }
     }
 }
