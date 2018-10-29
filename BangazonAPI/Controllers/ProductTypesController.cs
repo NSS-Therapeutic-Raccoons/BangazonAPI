@@ -1,4 +1,9 @@
-﻿using System;
+﻿/*
+Author: Klaus Hardt
+Purpose: Controller for Product Types including GET, GET by id, POST, PUT and DELETE 
+*/
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;

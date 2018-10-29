@@ -136,15 +136,9 @@ CREATE TABLE OrderProduct (
     CONSTRAINT FK_OrderProduct_Order FOREIGN KEY(OrderId) REFERENCES [Order](Id)
 );
 
-<<<<<<< HEAD
-insert into ProductType (Name) values ('Weapons');
-insert into ProductType (Name) values ('DVDs');
-insert into ProductType (Name) values ('CDs');
-insert into ProductType (Name) values ('AircraftCarriers');
-insert into ProductType (Name) values ('Books');
 
 */
-=======
+
 
 INSERT INTO Customer (FirstName,LastName) VALUES ('George', 'Constanza');
 INSERT INTO Customer (FirstName,LastName) VALUES ('Jeremiah','Pritchard');
@@ -198,4 +192,4 @@ INSERT INTO Product
 (ProductTypeId, CustomerId, Price, Title, [Description], Quantity)
 VALUES
 (4, 5, 79, 'Mike''s Delivery Plane', 'An aircraft carrier that deploys code all around the world', 2);
->>>>>>> master
+
