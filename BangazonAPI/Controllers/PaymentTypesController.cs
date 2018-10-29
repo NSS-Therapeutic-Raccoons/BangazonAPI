@@ -102,7 +102,7 @@ namespace BangazonAPI.Controllers
         public async Task<IActionResult> Put(int id, [FromBody] PaymentType paymentType)
         {
             string sql = $@"
-            UPDATE Instructor
+            UPDATE PaymentType
             SET AcctNumber = '{paymentType.AcctNumber}',
                 Name = '{paymentType.Name}',
                 CustomerId = '{paymentType.CustomerId}'
