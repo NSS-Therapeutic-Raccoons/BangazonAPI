@@ -33,36 +33,73 @@ namespace BangazonAPI.Controllers
 
         // GET api/customers?q=Taco
         [HttpGet]
-        public async Task<IActionResult> Get(string q)
+        public async Task<IActionResult> Get(string q, string _include)
         {
             string sql = @"
             SELECT
                 c.Id,
                 c.FirstName,
-                c.LastName
+                c.LastName,
+                p.Id,
+                p.CustomerId,
+                p.Name
             FROM Customer c
+            JOIN PaymentType p ON p.CustomerId = c.Id
             WHERE 1=1
             ";
-
             if (q != null)
             {
                 string isQ = $@"
                     AND c.FirstName LIKE '%{q}%'
                     OR c.LastName LIKE '%{q}%'
                 ";
-                sql = $"{sql} {isQ}";
-            }
+       
+                    sql = $"{sql} {isQ}";
+                }
+        
+                
+            
 
             Console.WriteLine(sql);
-
             using (IDbConnection conn = Connection)
             {
+                if (_include != null && _include.Contains("payments"))
+                {
+                    Dictionary<int, Customer> cAndP = new Dictionary<int, Customer>();
+                    IEnumerable<Customer> customers = await conn.QueryAsync<Customer, Payment, Customer>(
+                sql,
+                (customer, payment) =>
+                {
+                    if (!cAndP.ContainsKey(customer.Id))
+                    {
+                        cAndP[customer.Id] = customer;
+                    }
 
-                IEnumerable<Customer> customers = await conn.QueryAsync<Customer>(sql);
- 
-                return Ok(customers);
+                    cAndP[customer.Id].Payments.Add(payment);
+
+                    return customer;
+
+                });
+                    return Ok(cAndP.Values);
+
+
+                }
+                else
+                {
+                    IEnumerable<Customer> customers = await conn.QueryAsync<Customer>(
+                            sql
+                          );
+
+                    return Ok(customers);
+
+                }
             }
         }
+
+
+        // GET api/customers?_includes=payment
+
+
 
         // GET api/customers/5
         [HttpGet("{id}", Name = "GetCustomer")]
@@ -77,10 +114,14 @@ namespace BangazonAPI.Controllers
             WHERE c.Id = {id}
             ";
 
+
+
+
+
             using (IDbConnection conn = Connection)
             {
                 IEnumerable<Customer> customers = await conn.QueryAsync<Customer>(sql);
-                return Ok(customers);
+                return Ok(customers.Single());
             }
         }
 
@@ -169,3 +210,4 @@ namespace BangazonAPI.Controllers
     }
 
 }
+
