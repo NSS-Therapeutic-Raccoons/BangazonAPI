@@ -45,7 +45,6 @@ namespace BangazonAPI.Controllers
                 p.Id,
                 p.Name
             FROM ProductType p
-            WHERE 1=1
             ";
 
 
