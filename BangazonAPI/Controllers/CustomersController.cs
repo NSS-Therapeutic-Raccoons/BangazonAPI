@@ -72,7 +72,7 @@ namespace BangazonAPI.Controllers
             SELECT
                 c.Id,
                 c.FirstName,
-                c.LastName,
+                c.LastName
             FROM Customer c
             WHERE c.Id = {id}
             ";
