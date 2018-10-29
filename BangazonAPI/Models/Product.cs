@@ -2,7 +2,7 @@
     Author: Ricky Bruner
     Purpose: Model for Product class to represent products from the DB.
     
-     * **Contains two foreign keys, ProductTypeId and CustomerId.
+     ***Contains two foreign keys, ProductTypeId and CustomerId.
 */
 
 using System;
