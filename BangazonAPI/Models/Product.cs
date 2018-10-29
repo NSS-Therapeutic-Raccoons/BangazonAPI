@@ -21,5 +21,9 @@ namespace BangazonAPI.Models
 
         public int Quantity { get; set; }
 
+        public Customer customer { get; set; }
+
+        public PaymentType paymentType { get; set; }
+
     }
 }

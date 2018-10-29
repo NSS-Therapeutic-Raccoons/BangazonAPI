@@ -29,6 +29,50 @@ namespace BangazonAPI.Controllers
             }
         }
 
+        // GET api/Products
+        [HttpGet]
+        public async Task<IActionResult> Get()
+        {
+            string sql = @"
+            SELECT
+                p.Id,
+                p.PaymentTypeId,
+                p.CustomerId,
+                p.Price,
+                p.Title,
+                p.Description,
+                p.Quantity
+            FROM Student s
+            JOIN Cohort c ON s.CohortId = c.Id
+            WHERE 1=1
+            ";
+
+            if (q != null)
+            {
+                string isQ = $@"
+                    AND i.FirstName LIKE '%{q}%'
+                    OR i.LastName LIKE '%{q}%'
+                    OR i.SlackHandle LIKE '%{q}%'
+                ";
+                sql = $"{sql} {isQ}";
+            }
+
+            Console.WriteLine(sql);
+
+            using (IDbConnection conn = Connection)
+            {
+
+                IEnumerable<Student> students = await conn.QueryAsync<Student, Cohort, Student>(
+                    sql,
+                    (student, cohort) =>
+                    {
+                        student.Cohort = cohort;
+                        return student;
+                    }
+                );
+                return Ok(students);
+            }
+        }
         // GET api/values
         [HttpGet]
         public ActionResult<IEnumerable<string>> Get()
