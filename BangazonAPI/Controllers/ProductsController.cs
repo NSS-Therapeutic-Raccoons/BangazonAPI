@@ -4,8 +4,12 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
+using BangazonAPI.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Dapper;
+using Microsoft.AspNetCore.Http;
+
 
 namespace BangazonAPI.Controllers
 {
@@ -42,49 +46,39 @@ namespace BangazonAPI.Controllers
                 p.Title,
                 p.Description,
                 p.Quantity
-            FROM Student s
-            JOIN Cohort c ON s.CohortId = c.Id
-            WHERE 1=1
+            FROM Product p
             ";
-
-            if (q != null)
-            {
-                string isQ = $@"
-                    AND i.FirstName LIKE '%{q}%'
-                    OR i.LastName LIKE '%{q}%'
-                    OR i.SlackHandle LIKE '%{q}%'
-                ";
-                sql = $"{sql} {isQ}";
-            }
-
-            Console.WriteLine(sql);
 
             using (IDbConnection conn = Connection)
             {
 
-                IEnumerable<Student> students = await conn.QueryAsync<Student, Cohort, Student>(
-                    sql,
-                    (student, cohort) =>
-                    {
-                        student.Cohort = cohort;
-                        return student;
-                    }
-                );
-                return Ok(students);
+                IEnumerable<Product> products = await conn.QueryAsync<Product>(sql);
+                return Ok(products);
             }
         }
-        // GET api/values
-        [HttpGet]
-        public ActionResult<IEnumerable<string>> Get()
-        {
-            return new string[] { "value1", "value2" };
-        }
 
-        // GET api/values/5
-        [HttpGet("{id}")]
-        public ActionResult<string> Get(int id)
+        // GET api/Products/1
+        [HttpGet("{id}", Name = "GetProduct")]
+        public async Task<IActionResult> Get([FromRoute]int id)
         {
-            return "value";
+            string sql = $@"
+            SELECT
+                p.Id,
+                p.PaymentTypeId,
+                p.CustomerId,
+                p.Price,
+                p.Title,
+                p.Description,
+                p.Quantity
+            FROM Product p
+            WHERE p.Id = {id}
+            ";
+
+            using (IDbConnection conn = Connection)
+            {
+                IEnumerable<Product> students = await conn.QueryAsync<Product>(sql);
+                return Ok(students);
+            }
         }
 
         // POST api/values
