@@ -1,4 +1,4 @@
-/*
+
 DELETE FROM OrderProduct;
 DELETE FROM ComputerEmployee;
 DELETE FROM EmployeeTraining;
@@ -137,7 +137,7 @@ CREATE TABLE OrderProduct (
 );
 
 
-*/
+
 
 
 INSERT INTO Customer (FirstName,LastName) VALUES ('George', 'Constanza');
