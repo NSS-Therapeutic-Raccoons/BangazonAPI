@@ -48,15 +48,6 @@ namespace BangazonAPI.Controllers
             WHERE 1=1
             ";
 
-            if (q != null)
-            {
-                string isQ = $@"
-                    AND p.Name LIKE '%{q}%'
-                ";
-                sql = $"{sql} {isQ}";
-            }
-
-            Console.WriteLine(sql);
 
             using (IDbConnection conn = Connection)
             {

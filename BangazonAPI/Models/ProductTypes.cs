@@ -1,6 +1,6 @@
 /*
 Author: Klaus Hardt
-Purpose: Model for Product Types including gets/sets for all db columns and List
+Purpose: Model for Product Types including gets/sets for all db columns and List. Also Ricky sucks.
 */
 using System.Collections.Generic;
 
@@ -12,8 +12,6 @@ namespace BangazonAPI.Data
         public string Name { get; set; }
 
         
-       
-        public List<ProductTypes> productTypes { get; set; } = new List<ProductTypes>();
     }
 
 }
