@@ -1,3 +1,4 @@
+/*
 DELETE FROM OrderProduct;
 DELETE FROM ComputerEmployee;
 DELETE FROM EmployeeTraining;
@@ -134,3 +135,11 @@ CREATE TABLE OrderProduct (
     CONSTRAINT FK_OrderProduct_Product FOREIGN KEY(ProductId) REFERENCES Product(Id),
     CONSTRAINT FK_OrderProduct_Order FOREIGN KEY(OrderId) REFERENCES [Order](Id)
 );
+
+insert into ProductType (Name) values ('Weapons');
+insert into ProductType (Name) values ('DVDs');
+insert into ProductType (Name) values ('CDs');
+insert into ProductType (Name) values ('AircraftCarriers');
+insert into ProductType (Name) values ('Books');
+
+*/
