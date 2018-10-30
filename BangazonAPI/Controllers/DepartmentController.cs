@@ -1,6 +1,6 @@
-﻿/*
+/*
 Author: Klaus Hardt
-Purpose: Controller for Product Types including GET, GET by id, POST, PUT and DELETE 
+Purpose: Controller for Department including GET, GET by id, POST
 */
 
 using System;
@@ -19,11 +19,11 @@ namespace BangazonAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ProductTypesController : ControllerBase
+    public class DepartmentsController : ControllerBase
     {
         private readonly IConfiguration _config;
 
-        public ProductTypesController(IConfiguration config)
+        public DepartmentsController(IConfiguration config)
         {
             _config = config;
         }
@@ -36,75 +36,88 @@ namespace BangazonAPI.Controllers
             }
         }
 
-        // GET api/productTypes
+        // GET api/departments/This includes the greater than and equals to filter. Any number should work
         [HttpGet]
-        public async Task<IActionResult> Get()
+        public async Task<IActionResult> Get(int? _filter)
         {
             string sql = @"
             SELECT
-                p.Id,
-                p.Name
-            FROM ProductType p
+                d.Id,
+                d.Name,
+                d.Budget
+            FROM Department d
+            WHERE 1=1
             ";
 
+
+            if (_filter != null)
+            {
+                string isQ = $@"
+                    AND d.Budget >= {_filter}
+                ";
+                sql = $"{sql} {isQ}";
+            }
 
             using (IDbConnection conn = Connection)
             {
 
-                IEnumerable<ProductType> productTypes = await conn.QueryAsync<ProductType>(
+                IEnumerable<Department> departments = await conn.QueryAsync<Department>(
                     sql);
-               
-                return Ok(productTypes);
+
+                return Ok(departments);
             }
         }
-        
-        // GET api/productTypes/5
-        [HttpGet("{id}", Name = "GetProductType")]
+
+        // GET api/departments/5
+        [HttpGet("{id}", Name = "GetDepartment")]
         public async Task<IActionResult> Get([FromRoute]int id)
         {
             string sql = $@"
             SELECT
-                p.Id,
-                p.Name
-            FROM ProductType p
-            WHERE p.Id = {id}
+                d.Id,
+                d.Name,
+                d.Budget
+            FROM Department d
+            WHERE d.Id = {id}
             ";
 
             using (IDbConnection conn = Connection)
             {
-                IEnumerable<ProductType> productTypes = await conn.QueryAsync<ProductType>(sql);
-                return Ok(productTypes.Single());
+                IEnumerable<Department> departments = await conn.QueryAsync<Department>(sql);
+                return Ok(departments.Single());
             }
         }
-        
-        // POST api/ProductTypes
+
+        // POST api/Department
         [HttpPost]
-        public async Task<IActionResult> Post([FromBody] ProductType productTypes)
+        public async Task<IActionResult> Post([FromBody] Department departments)
         {
-            string sql = $@"INSERT INTO ProductType
-            (Name)
+            string sql = $@"INSERT INTO Department
+            (Name, Budget)
             VALUES
             (
-                '{productTypes.Name}'
+                '{departments.Name}',
+                '{departments.Budget}'
             );
             SELECT SCOPE_IDENTITY();";
 
             using (IDbConnection conn = Connection)
             {
                 var newId = (await conn.QueryAsync<int>(sql)).Single();
-                productTypes.Id = newId;
-                return CreatedAtRoute("GetProductType", new { id = newId }, productTypes);
+                departments.Id = newId;
+                return CreatedAtRoute("GetDepartment", new { id = newId }, departments);
             }
         }
 
-        
-        // PUT api/productTypes/5
+
+        // PUT api/departments/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> Put(int id, [FromBody] ProductType productTypes)
+        public async Task<IActionResult> Put(int id, [FromBody] Department departments)
         {
             string sql = $@"
-            UPDATE ProductType
-            SET Name = '{productTypes.Name}'
+            UPDATE Department
+            SET Name = '{departments.Name}',
+            Budget = '{departments.Budget}'
             WHERE Id = {id}";
 
             try
@@ -121,7 +134,7 @@ namespace BangazonAPI.Controllers
             }
             catch (Exception)
             {
-                if (!ProductTypeExists(id))
+                if (!DepartmentExists(id))
                 {
                     return NotFound();
                 }
@@ -132,7 +145,7 @@ namespace BangazonAPI.Controllers
             }
         }
 
-        
+        /*
         // DELETE api/productTypes/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
@@ -150,17 +163,17 @@ namespace BangazonAPI.Controllers
             }
 
         }
-        
-        private bool ProductTypeExists(int id)
+        */
+        private bool DepartmentExists(int id)
         {
-            string sql = $"SELECT Id FROM ProductType WHERE Id = {id}";
+            string sql = $"SELECT Id FROM Department WHERE Id = {id}";
             using (IDbConnection conn = Connection)
             {
-                return conn.Query<ProductType>(sql).Count() > 0;
+                return conn.Query<Department>(sql).Count() > 0;
             }
         }
 
-    
+
     }
 
 }
