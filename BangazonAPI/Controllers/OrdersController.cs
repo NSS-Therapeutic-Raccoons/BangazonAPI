@@ -4,8 +4,11 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
+using BangazonAPI.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Dapper;
+using Microsoft.AspNetCore.Http;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -29,36 +32,129 @@ namespace BangazonAPI.Controllers
                 return new SqlConnection(_config.GetConnectionString("DefaultConnection"));
             }
         }
-        // GET: api/<controller>
+
+        // GET api/Orders returns all products
         [HttpGet]
-        public IEnumerable<string> Get()
+        public async Task<IActionResult> Get()
         {
-            return new string[] { "value1", "value2" };
+            string sql = @"
+            SELECT
+                o.Id,
+                o.PaymentTypeId,
+                o.CustomerId,
+            FROM Order o
+            ";
+
+            using (IDbConnection conn = Connection)
+            {
+
+                IEnumerable<Order> products = await conn.QueryAsync<Order>(sql);
+                return Ok(products);
+            }
         }
 
-        // GET api/<controller>/5
-        [HttpGet("{id}")]
-        public string Get(int id)
+        // GET api/Orders/1 returns order with given Id
+        [HttpGet("{id}", Name = "GetProduct")]
+        public async Task<IActionResult> Get([FromRoute]int id)
         {
-            return "value";
+            string sql = $@"
+            SELECT
+                o.Id,
+                o.PaymentTypeId,
+                o.CustomerId,
+            FROM Order o
+            WHERE o.Id = {id}
+            ";
+
+            using (IDbConnection conn = Connection)
+            {
+                IEnumerable<Product> products = await conn.QueryAsync<Product>(sql);
+                return Ok(products.Single());
+            }
         }
 
-        // POST api/<controller>
+        // POST api/Orders adds a new Order
         [HttpPost]
-        public void Post([FromBody]string value)
+        public async Task<IActionResult> Post([FromBody] Order order)
         {
+            string sql = $@"INSERT INTO Order 
+            (CustomerId, PaymentTypeId)
+            VALUES
+            (
+                '{order.CustomerId}',
+                '{order.PaymentTypeId}'
+            );
+            SELECT SCOPE_IDENTITY();";
+
+            using (IDbConnection conn = Connection)
+            {
+                var newId = (await conn.QueryAsync<int>(sql)).Single();
+                order.Id = newId;
+                return CreatedAtRoute("GetOrder", new { id = newId }, order);
+            }
         }
 
-        // PUT api/<controller>/5
+        // PUT api/Orders/5 replaces a Order with the given Id
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody]string value)
+        public async Task<IActionResult> Put(int id, [FromBody] Order order)
         {
+            string sql = $@"
+            UPDATE Order
+            SET CustomerId = '{order.CustomerId}',
+                PaymentTypeId= '{order.PaymentTypeId}',
+            WHERE Id = {id}";
+
+            try
+            {
+                using (IDbConnection conn = Connection)
+                {
+                    int rowsAffected = await conn.ExecuteAsync(sql);
+                    if (rowsAffected > 0)
+                    {
+                        return new StatusCodeResult(StatusCodes.Status204NoContent);
+                    }
+                    throw new Exception("No rows affected");
+                }
+            }
+            catch (Exception)
+            {
+                if (!OrderExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
         }
 
-        // DELETE api/<controller>/5
+        // DELETE api/Orders/5 removes the Order with the given Id
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
+            string sql = $@"DELETE FROM Order WHERE Id = {id}";
+
+            using (IDbConnection conn = Connection)
+            {
+                int rowsAffected = await conn.ExecuteAsync(sql);
+                if (rowsAffected > 0)
+                {
+                    return new StatusCodeResult(StatusCodes.Status204NoContent);
+                }
+                throw new Exception("No rows affected");
+            }
+
+        }
+
+        // bool for try/catch
+        private bool OrderExists(int id)
+        {
+            string sql = $"SELECT Id FROM Order WHERE Id = {id}";
+            using (IDbConnection conn = Connection)
+            {
+                return conn.Query<Order>(sql).Count() > 0;
+            }
         }
     }
 }
