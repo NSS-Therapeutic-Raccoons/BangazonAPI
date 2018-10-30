@@ -1,4 +1,13 @@
-﻿using BangazonAPI.Data;
+﻿/*
+    Author: Jeremiah Pritchard
+    Purpose: Model for Customer class to represent customers from the DB.
+    
+     ***Contains two lists to contain data from products and paymentTypes.
+*/
+
+
+
+using BangazonAPI.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
