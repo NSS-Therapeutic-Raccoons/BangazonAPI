@@ -9,6 +9,7 @@ using System.Data.SqlClient;
 using Dapper;
 using Microsoft.AspNetCore.Http;
 using BangazonAPI.Models;
+using BangazonAPI.Data;
 
 namespace BangazonAPI.Controllers
 {
@@ -35,54 +36,96 @@ namespace BangazonAPI.Controllers
         [HttpGet]
         public async Task<IActionResult> Get(string q, string _include)
         {
-            string sql = @"
+           string sql;
+        if (_include != null && _include.Contains("payments"))
+            {
+                sql = @"
             SELECT
                 c.Id,
                 c.FirstName,
                 c.LastName,
                 p.Id,
                 p.CustomerId,
-                p.Name,
-                pr.Id,
-                pr.Description,
-                pr.Title,
-                pr.Price,
-                pr.Quantity
+                p.Name    
             FROM Customer c
-            JOIN PaymentType p ON p.CustomerId = c.Id
-            JOIN Product pr ON pr.CustomerId = c.Id
+            JOIN PaymentType p ON p.CustomerId = c.Id          
             WHERE 1=1
             ";
-            if (q != null)
-            {
-                string isQ = $@"
+                if (q != null)
+                {
+                    string isQ = $@"
                     AND c.FirstName LIKE '%{q}%'
                     OR c.LastName LIKE '%{q}%'
                 ";
-       
                     sql = $"{sql} {isQ}";
                 }
-        
-                
-            
+            }
+        else if (_include != null && _include.Contains("products"))
+            {
+                 sql = $@"
+                SELECT
+                    c.Id,
+                    c.FirstName,
+                    c.LastName,
+                    pr.Id,
+                    pr.Description,
+                    pr.Title,
+                    pr.Price,
+                    pr.Quantity
+                FROM Customer c
+                JOIN Product pr ON pr.CustomerId = c.Id
+                WHERE 1=1
+                ";
+                if (q != null)
+                {
+                    string isQ = $@"
+                    AND c.FirstName LIKE '%{q}%'
+                    OR c.LastName LIKE '%{q}%'
+                ";
+                    sql = $"{sql} {isQ}";
+                }
 
+            }
+        else
+        {
+                 sql = @"
+            SELECT
+                c.Id,
+                c.FirstName,
+                c.LastName
+            FROM Customer c
+            WHERE 1=1
+            ";
+                if (q != null || _include != null)
+                {
+                    string isQ = $@"
+                    AND c.FirstName LIKE '%{q}%'
+                    OR c.LastName LIKE '%{q}%'
+                ";
+                    sql = $"{sql} {isQ}";
+                }
+
+        }                                 
             Console.WriteLine(sql);
             using (IDbConnection conn = Connection)
             {
                 if (_include != null && _include.Contains("payments"))
                 {
                     Dictionary<int, Customer> customerPay = new Dictionary<int, Customer>();
-                    IEnumerable<Customer> customers = await conn.QueryAsync<Customer, Payment, Customer>(
+                    IEnumerable<Customer> customers = await conn.QueryAsync<Customer, PaymentType, Customer>(
                 sql,
                 (customer, payment) =>
                 {
                     if (!customerPay.ContainsKey(customer.Id))
                     {
                         customerPay[customer.Id] = customer;
-                    }          
+                    }  
+                    
                     customerPay[customer.Id].Payments.Add(payment);
                     return customer;
-                });
+                }
+                
+                );
                     return Ok(customerPay.Values);
                 }
                 else if (_include != null && _include.Contains("products"))
@@ -147,7 +190,7 @@ namespace BangazonAPI.Controllers
                 if (_include != null && _include.Contains("payments"))
                 {
                     Dictionary<int, Customer> customerPay = new Dictionary<int, Customer>();
-                    IEnumerable<Customer> customers = await conn.QueryAsync<Customer, Payment, Customer>(
+                    IEnumerable<Customer> customers = await conn.QueryAsync<Customer, PaymentType, Customer>(
                 sql,
                 (customer, payment) =>
                 {
@@ -157,7 +200,7 @@ namespace BangazonAPI.Controllers
                     }
                     customerPay[customer.Id].Payments.Add(payment);
                     return customer;
-                });
+                }, splitOn: "customerId");
                     return Ok(customerPay.Values);
                 }
                 else if (_include != null && _include.Contains("products"))
@@ -184,7 +227,7 @@ namespace BangazonAPI.Controllers
                             sql
                           );
 
-                    return Ok(customers.Single());
+                    return Ok(customers);
 
                 }
             }         
