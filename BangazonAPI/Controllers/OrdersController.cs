@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -11,6 +14,21 @@ namespace BangazonAPI.Controllers
     [Route("api/[controller]")]
     public class OrdersController : Controller
     {
+
+        private readonly IConfiguration _config;
+
+        public OrdersController(IConfiguration config)
+        {
+            _config = config;
+        }
+
+        public IDbConnection Connection
+        {
+            get
+            {
+                return new SqlConnection(_config.GetConnectionString("DefaultConnection"));
+            }
+        }
         // GET: api/<controller>
         [HttpGet]
         public IEnumerable<string> Get()

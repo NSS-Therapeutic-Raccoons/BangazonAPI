@@ -192,4 +192,3 @@ INSERT INTO Product
 (ProductTypeId, CustomerId, Price, Title, [Description], Quantity)
 VALUES
 (4, 5, 79, 'Mike''s Delivery Plane', 'An aircraft carrier that deploys code all around the world', 2);
-
