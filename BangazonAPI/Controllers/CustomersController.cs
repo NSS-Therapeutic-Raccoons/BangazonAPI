@@ -42,9 +42,15 @@ namespace BangazonAPI.Controllers
                 c.LastName,
                 p.Id,
                 p.CustomerId,
-                p.Name
+                p.Name,
+                pr.Id,
+                pr.Description,
+                pr.Title,
+                pr.Price,
+                pr.Quantity
             FROM Customer c
             JOIN PaymentType p ON p.CustomerId = c.Id
+            JOIN Product pr ON pr.CustomerId = c.Id
             WHERE 1=1
             ";
             if (q != null)
@@ -65,22 +71,35 @@ namespace BangazonAPI.Controllers
             {
                 if (_include != null && _include.Contains("payments"))
                 {
-                    Dictionary<int, Customer> cAndP = new Dictionary<int, Customer>();
+                    Dictionary<int, Customer> customerPay = new Dictionary<int, Customer>();
                     IEnumerable<Customer> customers = await conn.QueryAsync<Customer, Payment, Customer>(
                 sql,
                 (customer, payment) =>
                 {
-                    if (!cAndP.ContainsKey(customer.Id))
+                    if (!customerPay.ContainsKey(customer.Id))
                     {
-                        cAndP[customer.Id] = customer;
-                    }
-
-                    cAndP[customer.Id].Payments.Add(payment);
-
+                        customerPay[customer.Id] = customer;
+                    }          
+                    customerPay[customer.Id].Payments.Add(payment);
                     return customer;
-
                 });
-                    return Ok(cAndP.Values);
+                    return Ok(customerPay.Values);
+                }
+                else if (_include != null && _include.Contains("products"))
+                {
+                    Dictionary<int, Customer> customerProduct = new Dictionary<int, Customer>();
+                    IEnumerable<Customer> customers = await conn.QueryAsync<Customer, Product, Customer>(
+                    sql,
+                    (customer, product) =>
+                    {
+                        if (!customerProduct.ContainsKey(customer.Id))
+                        {
+                            customerProduct[customer.Id] = customer;
+                        }
+                        customerProduct[customer.Id].Products.Add(product);
+                        return customer;
+                    });
+                    return Ok(customerProduct.Values);
 
 
                 }
@@ -96,21 +115,26 @@ namespace BangazonAPI.Controllers
             }
         }
 
-
-        // GET api/customers?_includes=payment
-
-
-
         // GET api/customers/5
         [HttpGet("{id}", Name = "GetCustomer")]
-        public async Task<IActionResult> Get([FromRoute]int id)
+        public async Task<IActionResult> Get([FromRoute]int id, string _include)
         {
             string sql = $@"
             SELECT
                 c.Id,
                 c.FirstName,
-                c.LastName
+                c.LastName,
+                p.Id,
+                p.CustomerId,
+                p.Name,
+                pr.Id,
+                pr.Description,
+                pr.Title,
+                pr.Price,
+                pr.Quantity
             FROM Customer c
+            JOIN PaymentType p ON p.CustomerId = c.Id
+            JOIN Product pr ON pr.CustomerId = c.Id
             WHERE c.Id = {id}
             ";
 
@@ -120,9 +144,50 @@ namespace BangazonAPI.Controllers
 
             using (IDbConnection conn = Connection)
             {
-                IEnumerable<Customer> customers = await conn.QueryAsync<Customer>(sql);
-                return Ok(customers.Single());
-            }
+                if (_include != null && _include.Contains("payments"))
+                {
+                    Dictionary<int, Customer> customerPay = new Dictionary<int, Customer>();
+                    IEnumerable<Customer> customers = await conn.QueryAsync<Customer, Payment, Customer>(
+                sql,
+                (customer, payment) =>
+                {
+                    if (!customerPay.ContainsKey(customer.Id))
+                    {
+                        customerPay[customer.Id] = customer;
+                    }
+                    customerPay[customer.Id].Payments.Add(payment);
+                    return customer;
+                });
+                    return Ok(customerPay.Values);
+                }
+                else if (_include != null && _include.Contains("products"))
+                {
+                    Dictionary<int, Customer> customerProduct = new Dictionary<int, Customer>();
+                    IEnumerable<Customer> customers = await conn.QueryAsync<Customer, Product, Customer>(
+                    sql,
+                    (customer, product) =>
+                    {
+                        if (!customerProduct.ContainsKey(customer.Id))
+                        {
+                            customerProduct[customer.Id] = customer;
+                        }
+                        customerProduct[customer.Id].Products.Add(product);
+                        return customer;
+                    });
+                    return Ok(customerProduct.Values);
+
+
+                }
+                else
+                {
+                    IEnumerable<Customer> customers = await conn.QueryAsync<Customer>(
+                            sql
+                          );
+
+                    return Ok(customers.Single());
+
+                }
+            }         
         }
 
         // POST api/customer
