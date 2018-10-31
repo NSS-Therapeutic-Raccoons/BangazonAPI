@@ -38,25 +38,64 @@ namespace BangazonAPI.Controllers
 
         // GET api/departments/This includes the greater than and equals to filter. Any number should work
         [HttpGet]
-        public async Task<IActionResult> Get(int? _filter)
+        public async Task<IActionResult> Get(int? _filter, string _include)
         {
-            string sql = @"
-            SELECT
-                d.Id,
-                d.Name,
-                d.Budget
-            FROM Department d
-            WHERE 1=1
-            ";
-
-
+            string sql;
             if (_filter != null)
-            {
-                string isQ = $@"
+                {
+                    sql = @"
+                     SELECT
+                    d.Id,
+                    d.Name,
+                    d.Budget
+                     FROM Department d
+                     WHERE 1=1
+                     ";
+                    string isQ = $@"
                     AND d.Budget >= {_filter}
-                ";
+                     ";
+                    sql = $"{sql} {isQ}";
+                }
+
+            else if (_include == "employees")
+            {
+                sql = @"
+                     SELECT
+                    d.Id,
+                    d.Name,
+                    d.Budget,
+                    e.id,
+                    e.lastName,
+                    e.firstName
+                    FROM Department d
+                    JOIN Employee e ON e.DepartmentId = d.Id
+                    WHERE 1=1
+                     ";
+                string isQ = $@"
+                    AND employees = {_include}
+                     ";
                 sql = $"{sql} {isQ}";
+
+                Dictionary<string, List<Employee>> report = new Dictionary<string, List<Employee>>();
+
+
+
             }
+
+            else
+            {
+                     sql = @"
+                     SELECT
+                    d.Id,
+                    d.Name,
+                    d.Budget
+                     FROM Department d
+                     WHERE 1=1
+                     ";
+
+            }
+            
+           
 
             using (IDbConnection conn = Connection)
             {

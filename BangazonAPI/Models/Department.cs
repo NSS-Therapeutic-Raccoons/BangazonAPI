@@ -1,4 +1,5 @@
-using System.Collections.Generic;
+//author: Klaus Hardt
+//purpose: Department model. Employee commented out due to not having Employee model
 
 namespace BangazonAPI.Model
 {
