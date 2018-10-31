@@ -20,7 +20,6 @@ using System.Data.SqlClient;
 using Dapper;
 using Microsoft.AspNetCore.Http;
 using BangazonAPI.Models;
-using BangazonAPI.Data;
 
 namespace BangazonAPI.Controllers
 {
@@ -314,4 +313,3 @@ namespace BangazonAPI.Controllers
         }
     }
 }
-
