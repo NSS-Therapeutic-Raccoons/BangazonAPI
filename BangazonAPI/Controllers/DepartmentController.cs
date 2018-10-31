@@ -44,15 +44,15 @@ namespace BangazonAPI.Controllers
             string sql;
             if (_filter != null)
                 {
-                    sql = @"
+                sql = $@"
                      SELECT
                      d.Id,
                      d.Name,
                      d.Budget
                      FROM Department d
                      WHERE d.Budget >= {_filter}";
-                    
-
+                
+             
                 using (IDbConnection conn = Connection)
                 {
 
@@ -63,7 +63,7 @@ namespace BangazonAPI.Controllers
                 }
             }
 
-            else if (_include == "employees")
+            else if (_include == "employees") //this part should give you the employees as well
             {
                 sql = @"
                     SELECT
@@ -73,6 +73,7 @@ namespace BangazonAPI.Controllers
                     e.id,
                     e.lastName,
                     e.firstName,
+                    e.DepartmentId,
                     e.isSupervisor
                     FROM Department d
                     JOIN Employee e ON e.DepartmentId = d.Id";
@@ -99,7 +100,7 @@ namespace BangazonAPI.Controllers
                 }
             }
 
-            else
+            else  //will give you all departments only
             {
                      sql = @"
                     SELECT
