@@ -4,7 +4,8 @@ Purpose: Model for Product Types including gets/sets for all db columns and List
 */
 using System.Collections.Generic;
 
-namespace BangazonAPI.Model
+
+namespace BangazonAPI.Models
 {
     public class ProductType
     {
