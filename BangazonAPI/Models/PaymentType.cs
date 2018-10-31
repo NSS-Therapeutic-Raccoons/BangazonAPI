@@ -1,6 +1,13 @@
+/*
+    Author: Mike Parrish
+    Purpose: Model for the PaymentType class to represent products from the DB.
+    
+     ***Contains one foreign key CustomerId.
+*/
+
 using System.Collections.Generic;
 
-namespace BangazonAPI.Data
+namespace BangazonAPI.Models
 {
     public class PaymentType
     {
