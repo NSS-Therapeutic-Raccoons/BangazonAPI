@@ -103,7 +103,7 @@ namespace BangazonAPI.Controllers
             FROM Customer c
             WHERE 1=1
             ";
-                if (q != null || _include != null)
+                if (q != null)
                 {
                     string isQ = $@"
                     AND c.FirstName LIKE '%{q}%'
