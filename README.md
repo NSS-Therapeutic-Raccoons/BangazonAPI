@@ -45,4 +45,4 @@ A step by step series of examples that tell you how to get a development env run
 ## Notes
 
 * Here is the ERD for our project.
-** ![Bangazon ERD](https://github.com/NSS-Therapeutic-Raccoons/BangazonAPI/blob/master/BangazonAPI-ERD.png?raw=true)
+![Bangazon ERD](https://github.com/NSS-Therapeutic-Raccoons/BangazonAPI/blob/master/BangazonAPI-ERD.png?raw=true)
