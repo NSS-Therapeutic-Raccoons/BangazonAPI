@@ -192,3 +192,68 @@ INSERT INTO Product
 (ProductTypeId, CustomerId, Price, Title, [Description], Quantity)
 VALUES
 (4, 5, 79, 'Mike''s Delivery Plane', 'An aircraft carrier that deploys code all around the world', 2);
+
+INSERT INTO [Order]
+(CustomerId, PaymentTypeId)
+VALUES
+(3, 1);
+
+INSERT INTO [Order]
+(CustomerId, PaymentTypeId)
+VALUES
+(3, 2);
+
+INSERT INTO [Order]
+(CustomerId, PaymentTypeId)
+VALUES
+(4, 1);
+
+INSERT INTO [Order]
+(CustomerId, PaymentTypeId)
+VALUES
+(4, 2);
+
+INSERT INTO OrderProduct
+(OrderId, ProductId)
+VALUES
+(1, 2);
+
+INSERT INTO OrderProduct
+(OrderId, ProductId)
+VALUES
+(1, 1);
+
+INSERT INTO OrderProduct
+(OrderId, ProductId)
+VALUES
+(1, 3);
+
+INSERT INTO OrderProduct
+(OrderId, ProductId)
+VALUES
+(1, 4);
+
+INSERT INTO OrderProduct
+(OrderId, ProductId)
+VALUES
+(2, 1);
+
+INSERT INTO OrderProduct
+(OrderId, ProductId)
+VALUES
+(3, 1);
+
+INSERT INTO OrderProduct
+(OrderId, ProductId)
+VALUES
+(3, 1);
+
+INSERT INTO OrderProduct
+(OrderId, ProductId)
+VALUES
+(4, 1);
+
+INSERT INTO OrderProduct
+(OrderId, ProductId)
+VALUES
+(4, 2);

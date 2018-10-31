@@ -12,17 +12,6 @@ using Microsoft.AspNetCore.Http;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
-//Verbs to be supported
-
-//GET
-//POST
-//PUT
-//DELETE
-//User should be able to GET a list, and GET a single item.
-//When an order is deleted, every line item (i.e.entry in OrderProduct) should be removed
-//Should be able to filter out completed orders with the ? completed = false query string parameter.If the parameter value is true, then only completed order should be returned.
-//  If the query string parameter of? _include = products is in the URL, then the list of products in the order should be returned.
-//  If the query string parameter of? _include = customers is in the URL, then the customer representation should be included in the response.
 
 namespace BangazonAPI.Controllers
 {
@@ -57,8 +46,8 @@ namespace BangazonAPI.Controllers
                     SELECT
                         o.Id,
                         o.PaymentTypeId,
-                        o.CustomerId,
-                    FROM Order o
+                        o.CustomerId
+                    FROM [Order] o
                 ";
             }
             else if (_completed != null && _include == null)
@@ -67,8 +56,8 @@ namespace BangazonAPI.Controllers
                     SELECT
                         o.Id,
                         o.PaymentTypeId,
-                        o.CustomerId,
-                    FROM Order o
+                        o.CustomerId
+                    FROM [Order] o
                     WHERE 1=1
                 ";
 
@@ -103,9 +92,9 @@ namespace BangazonAPI.Controllers
                             p.Title,
                             p.Description,
                             p.Quantity
-                        FROM Order o
-                        JOIN OrderProduct op WHERE o.Id = op.OrderId
-                        JOIN Product p WHERE p.Id = op.ProductId
+                        FROM [Order] o
+                        JOIN OrderProduct op ON o.Id = op.OrderId
+                        JOIN Product p ON p.Id = op.ProductId
                     ";
                 }
                 else if (_include == "customer")
@@ -118,8 +107,8 @@ namespace BangazonAPI.Controllers
                             c.Id,
                             c.FirstName,
                             c.LastName
-                        FROM Order o
-                        JOIN Customer c WHERE c.Id = o.CustomerId
+                        FROM [Order] o
+                        JOIN Customer c ON c.Id = o.CustomerId
                     ";
                 }
                 else
@@ -129,7 +118,7 @@ namespace BangazonAPI.Controllers
                             o.Id,
                             o.PaymentTypeId,
                             o.CustomerId
-                        FROM Order o
+                        FROM [Order] o
                     ";
                 }
             }
@@ -139,19 +128,19 @@ namespace BangazonAPI.Controllers
                 {
                     sql = @"
                         SELECT
-                            o.Id,
-                            o.PaymentTypeId,
-                            o.CustomerId,
                             p.Id,
                             p.ProductTypeId,
                             p.CustomerId,
                             p.Price,
                             p.Title,
-                            p.Description,
-                            p.Quantity
-                        FROM Order o
-                        JOIN OrderProduct op WHERE o.Id = op.OrderId
-                        JOIN Product p WHERE p.Id = op.ProductId
+                            p.[Description],
+                            p.Quantity,
+                            o.Id,
+                            o.PaymentTypeId,
+                            o.CustomerId
+                        FROM Product p
+                        JOIN OrderProduct op ON p.Id = op.ProductId
+                        JOIN [Order] o ON o.Id = op.OrderId
                         WHERE 1=1
                     ";
 
@@ -174,7 +163,7 @@ namespace BangazonAPI.Controllers
 
                     }
                 }
-                if (_include == "customer")
+                else if (_include == "customer")
                 {
                     sql = @"
                         SELECT
@@ -184,8 +173,8 @@ namespace BangazonAPI.Controllers
                             c.Id,
                             c.FirstName,
                             c.LastName
-                        FROM Order o
-                        JOIN Customer c WHERE c.Id = o.CustomerId
+                        FROM [Order] o
+                        JOIN Customer c ON c.Id = o.CustomerId
                         WHERE 1=1
                     ";
 
@@ -214,8 +203,8 @@ namespace BangazonAPI.Controllers
                         SELECT
                             o.Id,
                             o.PaymentTypeId,
-                            o.CustomerId,
-                        FROM Order o
+                            o.CustomerId
+                        FROM [Order] o
                         WHERE 1 = 1
                     ";
 
@@ -246,9 +235,9 @@ namespace BangazonAPI.Controllers
 
                 if (_include != null && _include == "products")
                 {
-                    IEnumerable<Order> orders = await conn.QueryAsync<Order, Product, Order>(
+                    IEnumerable<Order> orders = await conn.QueryAsync<Product, Order, Order>(
                         sql,
-                        (order, product) =>
+                        (product, order) =>
                         {
                             if (!completeOrders.ContainsKey(order.Id))
                             {
@@ -291,21 +280,21 @@ namespace BangazonAPI.Controllers
         }
 
         // GET api/Orders/1 returns order with given Id
-        [HttpGet("{id}", Name = "GetProduct")]
+        [HttpGet("{id}", Name = "GetOrder")]
         public async Task<IActionResult> Get([FromRoute]int id)
         {
             string sql = $@"
             SELECT
                 o.Id,
                 o.PaymentTypeId,
-                o.CustomerId,
-            FROM Order o
+                o.CustomerId
+            FROM [Order] o
             WHERE o.Id = {id}
             ";
 
             using (IDbConnection conn = Connection)
             {
-                IEnumerable<Product> products = await conn.QueryAsync<Product>(sql);
+                IEnumerable<Order> products = await conn.QueryAsync<Order>(sql);
                 return Ok(products.Single());
             }
         }
@@ -314,7 +303,7 @@ namespace BangazonAPI.Controllers
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] Order order)
         {
-            string sql = $@"INSERT INTO Order 
+            string sql = $@"INSERT INTO [Order] 
             (CustomerId, PaymentTypeId)
             VALUES
             (
@@ -336,7 +325,7 @@ namespace BangazonAPI.Controllers
         public async Task<IActionResult> Put(int id, [FromBody] Order order)
         {
             string sql = $@"
-            UPDATE Order
+            UPDATE [Order]
             SET CustomerId = '{order.CustomerId}',
                 PaymentTypeId= '{order.PaymentTypeId}',
             WHERE Id = {id}";
@@ -370,7 +359,7 @@ namespace BangazonAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            string sql = $@"DELETE FROM Order WHERE Id = {id}";
+            string sql = $@"DELETE FROM [Order] WHERE Id = {id}";
 
             using (IDbConnection conn = Connection)
             {
@@ -387,7 +376,7 @@ namespace BangazonAPI.Controllers
         // bool for try/catch
         private bool OrderExists(int id)
         {
-            string sql = $"SELECT Id FROM Order WHERE Id = {id}";
+            string sql = $"SELECT Id FROM [Order] WHERE Id = {id}";
             using (IDbConnection conn = Connection)
             {
                 return conn.Query<Order>(sql).Count() > 0;
