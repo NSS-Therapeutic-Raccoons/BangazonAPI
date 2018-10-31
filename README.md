@@ -1,7 +1,3 @@
-#BangazonAPI
-## 
-![Bangazon ERD](https://github.com/NSS-Therapeutic-Raccoons/BangazonAPI/blob/master/BangazonAPI-ERD.png?raw=true)
-
 # BangazonAPI
 
 The first group sprint of NSS c# backend program, BangazonAPI is a personal E-Commerce platform. The goal is to allow users to browse and purchase items, as well as sell items to other visiters to the site.
@@ -45,3 +41,8 @@ A step by step series of examples that tell you how to get a development env run
 ## Acknowledgments
 
 * Special thanks to **Andy Collins** - [askingalot](https://github.com/askingalot) for putting up with us!
+
+## Notes
+
+* Here is the ERD for our project.
+** ![Bangazon ERD](https://github.com/NSS-Therapeutic-Raccoons/BangazonAPI/blob/master/BangazonAPI-ERD.png?raw=true)
