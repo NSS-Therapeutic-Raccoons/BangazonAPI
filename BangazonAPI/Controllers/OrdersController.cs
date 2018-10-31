@@ -12,6 +12,18 @@ using Microsoft.AspNetCore.Http;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
+//Verbs to be supported
+
+//GET
+//POST
+//PUT
+//DELETE
+//User should be able to GET a list, and GET a single item.
+//When an order is deleted, every line item (i.e.entry in OrderProduct) should be removed
+//Should be able to filter out completed orders with the ? completed = false query string parameter.If the parameter value is true, then only completed order should be returned.
+//  If the query string parameter of? _include = products is in the URL, then the list of products in the order should be returned.
+//  If the query string parameter of? _include = customers is in the URL, then the customer representation should be included in the response.
+
 namespace BangazonAPI.Controllers
 {
     [Route("api/[controller]")]
@@ -35,21 +47,246 @@ namespace BangazonAPI.Controllers
 
         // GET api/Orders returns all products
         [HttpGet]
-        public async Task<IActionResult> Get()
+        public async Task<IActionResult> Get(bool? _completed, string _include)
         {
-            string sql = @"
-            SELECT
-                o.Id,
-                o.PaymentTypeId,
-                o.CustomerId,
-            FROM Order o
-            ";
+            string sql = "";
+
+            if (_completed == null && _include == null)
+            {
+                sql = @"
+                    SELECT
+                        o.Id,
+                        o.PaymentTypeId,
+                        o.CustomerId,
+                    FROM Order o
+                ";
+            }
+            else if (_completed != null && _include == null)
+            {
+                sql = @"
+                    SELECT
+                        o.Id,
+                        o.PaymentTypeId,
+                        o.CustomerId,
+                    FROM Order o
+                    WHERE 1=1
+                ";
+
+                if (_completed == false)
+                {
+                    string isComplete = $@"
+                        AND o.PaymentTypeId IS NULL
+                    ";
+                    sql = $"{sql} {isComplete}";
+                }
+                else
+                {
+                    string isComplete = $@"
+                        AND o.PaymentTypeId IS NOT NULL
+                    ";
+                    sql = $"{sql} {isComplete}";
+                }
+            }
+            else if (_completed == null && _include != null)
+            {
+                if (_include == "products")
+                {
+                    sql = @"
+                        SELECT
+                            o.Id,
+                            o.PaymentTypeId,
+                            o.CustomerId,
+                            p.Id,
+                            p.ProductTypeId,
+                            p.CustomerId,
+                            p.Price,
+                            p.Title,
+                            p.Description,
+                            p.Quantity
+                        FROM Order o
+                        JOIN OrderProduct op WHERE o.Id = op.OrderId
+                        JOIN Product p WHERE p.Id = op.ProductId
+                    ";
+                }
+                else if (_include == "customer")
+                {
+                    sql = @"
+                        SELECT
+                            o.Id,
+                            o.PaymentTypeId,
+                            o.CustomerId,
+                            c.Id,
+                            c.FirstName,
+                            c.LastName
+                        FROM Order o
+                        JOIN Customer c WHERE c.Id = o.CustomerId
+                    ";
+                }
+                else
+                {
+                    sql = @"
+                        SELECT
+                            o.Id,
+                            o.PaymentTypeId,
+                            o.CustomerId
+                        FROM Order o
+                    ";
+                }
+            }
+            else if (_completed != null && _include != null)
+            {
+                if (_include == "products")
+                {
+                    sql = @"
+                        SELECT
+                            o.Id,
+                            o.PaymentTypeId,
+                            o.CustomerId,
+                            p.Id,
+                            p.ProductTypeId,
+                            p.CustomerId,
+                            p.Price,
+                            p.Title,
+                            p.Description,
+                            p.Quantity
+                        FROM Order o
+                        JOIN OrderProduct op WHERE o.Id = op.OrderId
+                        JOIN Product p WHERE p.Id = op.ProductId
+                        WHERE 1=1
+                    ";
+
+                    if (_completed == false)
+                    {
+                        string isComplete = $@"
+                            AND o.PaymentTypeId IS NULL
+                        ";
+
+                        sql = $"{sql} {isComplete}";
+
+                    }
+                    else
+                    {
+                        string isComplete = $@"
+                            AND o.PaymentTypeId IS NOT NULL
+                        ";
+
+                        sql = $"{sql} {isComplete}";
+
+                    }
+                }
+                if (_include == "customer")
+                {
+                    sql = @"
+                        SELECT
+                            o.Id,
+                            o.PaymentTypeId,
+                            o.CustomerId,
+                            c.Id,
+                            c.FirstName,
+                            c.LastName
+                        FROM Order o
+                        JOIN Customer c WHERE c.Id = o.CustomerId
+                        WHERE 1=1
+                    ";
+
+                    if (_completed == false)
+                    {
+                        string isComplete = $@"
+                            AND o.PaymentTypeId IS NULL
+                        ";
+
+                        sql = $"{sql} {isComplete}";
+
+                    }
+                    else
+                    {
+                        string isComplete = $@"
+                            AND o.PaymentTypeId IS NOT NULL
+                        ";
+
+                        sql = $"{sql} {isComplete}";
+
+                    }
+                }
+                else
+                {
+                    sql = @"
+                        SELECT
+                            o.Id,
+                            o.PaymentTypeId,
+                            o.CustomerId,
+                        FROM Order o
+                        WHERE 1 = 1
+                    ";
+
+                    if (_completed == false)
+                    {
+                        string isComplete = $@"
+                            AND o.PaymentTypeId IS NULL
+                        ";
+
+                        sql = $"{sql} {isComplete}";
+
+                    }
+                    else
+                    {
+                        string isComplete = $@"
+                            AND o.PaymentTypeId IS NOT NULL
+                        ";
+
+                        sql = $"{sql} {isComplete}";
+                    }
+                }
+            }
+
 
             using (IDbConnection conn = Connection)
             {
+                Dictionary<int, Order> completeOrders = new Dictionary<int, Order>();
 
-                IEnumerable<Order> products = await conn.QueryAsync<Order>(sql);
-                return Ok(products);
+                if (_include != null && _include == "products")
+                {
+                    IEnumerable<Order> orders = await conn.QueryAsync<Order, Product, Order>(
+                        sql,
+                        (order, product) =>
+                        {
+                            if (!completeOrders.ContainsKey(order.Id))
+                            {
+                                completeOrders[order.Id] = order;
+                            }
+                            completeOrders[order.Id].Products.Add(product);
+                            return order;
+                        }
+                    );
+                }
+                else if (_include != null && _include == "customer")
+                {
+                    IEnumerable<Order> orders = await conn.QueryAsync<Order, Customer, Order>(
+                        sql,
+                        (order, customer) =>
+                        {
+                            order.Customer = customer;
+                            completeOrders[order.Id] = order;
+                            return order;
+                        }
+                    );
+                }
+                else if (_include == null)
+                {
+                    IEnumerable<Order> orders = await conn.QueryAsync<Order>(sql);
+                    foreach (Order order in orders) {
+                        completeOrders[order.Id] = order;
+                    };
+                
+                }
+
+                List<Order> finalOrders = new List<Order>();
+                foreach (KeyValuePair<int, Order> order in completeOrders)
+                {
+                    finalOrders.Add(order.Value);
+                }
+
+                return Ok(finalOrders);
             }
         }
 
