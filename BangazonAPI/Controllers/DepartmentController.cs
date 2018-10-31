@@ -1,6 +1,7 @@
 /*
 Author: Klaus Hardt
-Purpose: Controller for Department including GET, GET by id, POST
+Purpose: Controller for Department including GET, GET by id, POST, PUT and filter by budget amount 
+greater than or equal and include Employees 
 */
 
 using System;
@@ -45,66 +46,81 @@ namespace BangazonAPI.Controllers
                 {
                     sql = @"
                      SELECT
-                    d.Id,
-                    d.Name,
-                    d.Budget
+                     d.Id,
+                     d.Name,
+                     d.Budget
                      FROM Department d
-                     WHERE 1=1
-                     ";
-                    string isQ = $@"
-                    AND d.Budget >= {_filter}
-                     ";
-                    sql = $"{sql} {isQ}";
+                     WHERE d.Budget >= {_filter}";
+                    
+
+                using (IDbConnection conn = Connection)
+                {
+
+                    IEnumerable<Department> departments = await conn.QueryAsync<Department>(
+                        sql);
+
+                    return Ok(departments);
                 }
+            }
 
             else if (_include == "employees")
             {
                 sql = @"
-                     SELECT
+                    SELECT
                     d.Id,
                     d.Name,
                     d.Budget,
                     e.id,
                     e.lastName,
-                    e.firstName
+                    e.firstName,
+                    e.isSupervisor
                     FROM Department d
-                    JOIN Employee e ON e.DepartmentId = d.Id
-                    WHERE 1=1
-                     ";
-                string isQ = $@"
-                    AND employees = {_include}
-                     ";
-                sql = $"{sql} {isQ}";
+                    JOIN Employee e ON e.DepartmentId = d.Id";
 
-                Dictionary<string, List<Employee>> report = new Dictionary<string, List<Employee>>();
+                   
+                
+                using (IDbConnection conn = Connection)
+                {
+                    Dictionary<int, Department> departmentEmployees = new Dictionary<int, Department>();
 
+                    IEnumerable<Department> departments = await conn.QueryAsync<Department, Employee, Department>(
+                    sql,
+                    (department, employee) =>
+                    {
+                        if (!departmentEmployees.ContainsKey(department.Id))
+                        {
+                            departmentEmployees[department.Id] = department;
+                        }
+                        departmentEmployees[department.Id].Employees.Add(employee);
+                        return department;
+                    });
+                    return Ok(departmentEmployees.Values);
 
-
+                }
             }
 
             else
             {
                      sql = @"
-                     SELECT
+                    SELECT
                     d.Id,
                     d.Name,
                     d.Budget
-                     FROM Department d
-                     WHERE 1=1
-                     ";
+                    FROM Department d
+                    ";
+                using (IDbConnection conn = Connection)
+                {
 
+                    IEnumerable<Department> departments = await conn.QueryAsync<Department>(
+                        sql);
+
+                    return Ok(departments);
+                }
             }
             
            
 
-            using (IDbConnection conn = Connection)
-            {
-
-                IEnumerable<Department> departments = await conn.QueryAsync<Department>(
-                    sql);
-
-                return Ok(departments);
-            }
+           
         }
 
         // GET api/departments/5
