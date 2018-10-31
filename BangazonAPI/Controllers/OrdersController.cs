@@ -82,19 +82,19 @@ namespace BangazonAPI.Controllers
                 {
                     sql = @"
                         SELECT
-                            o.Id,
-                            o.PaymentTypeId,
-                            o.CustomerId,
                             p.Id,
                             p.ProductTypeId,
                             p.CustomerId,
                             p.Price,
                             p.Title,
                             p.Description,
-                            p.Quantity
-                        FROM [Order] o
-                        JOIN OrderProduct op ON o.Id = op.OrderId
-                        JOIN Product p ON p.Id = op.ProductId
+                            p.Quantity,
+                            o.Id,
+                            o.PaymentTypeId,
+                            o.CustomerId
+                        FROM Product p
+                        JOIN OrderProduct op ON p.Id = op.ProductId
+                        JOIN [Order] o ON o.Id = op.OrderId
                     ";
                 }
                 else if (_include == "customer")
@@ -281,21 +281,103 @@ namespace BangazonAPI.Controllers
 
         // GET api/Orders/1 returns order with given Id
         [HttpGet("{id}", Name = "GetOrder")]
-        public async Task<IActionResult> Get([FromRoute]int id)
+        public async Task<IActionResult> Get([FromRoute] int id, string _include)
         {
-            string sql = $@"
-            SELECT
-                o.Id,
-                o.PaymentTypeId,
-                o.CustomerId
-            FROM [Order] o
-            WHERE o.Id = {id}
-            ";
+            string sql = "";
+            if (_include == null)
+            {
+                sql = $@"
+                    SELECT
+                        o.Id,
+                        o.PaymentTypeId,
+                        o.CustomerId
+                    FROM [Order] o
+                    WHERE o.Id = {id}
+                ";
+            }
+            else if (_include == "customer")
+            {
+                sql = $@"
+                    SELECT
+                        o.Id,
+                        o.PaymentTypeId,
+                        o.CustomerId,
+                        c.Id,
+                        c.FirstName,
+                        c.LastName
+                    FROM [Order] o
+                    JOIN Customer c ON c.Id = o.CustomerId
+                    WHERE o.Id = {id}
+                ";
+            }
+            else if (_include == "products")
+            {
+                sql = $@"
+                    SELECT
+                        p.Id,
+                        p.ProductTypeId,
+                        p.CustomerId,
+                        p.Price,
+                        p.Title,
+                        p.[Description],
+                        p.Quantity,
+                        o.Id,
+                        o.PaymentTypeId,
+                        o.CustomerId
+                    FROM Product p
+                    JOIN OrderProduct op ON p.Id = op.ProductId
+                    JOIN [Order] o ON o.Id = op.OrderId
+                    WHERE o.Id = {id}
+                ";
+            }
+
 
             using (IDbConnection conn = Connection)
             {
-                IEnumerable<Order> products = await conn.QueryAsync<Order>(sql);
-                return Ok(products.Single());
+                
+                Dictionary<int, Order> completeOrder = new Dictionary<int, Order>();
+
+                if (_include == null)
+                {
+                    IEnumerable<Order> orders = await conn.QueryAsync<Order>(sql);
+                    foreach (Order order in orders)
+                    {
+                        completeOrder[order.Id] = order;
+                    }
+                }
+                else if (_include == "customer")
+                {
+                    IEnumerable<Order> orders = await conn.QueryAsync<Order, Customer, Order>(
+                        sql,
+                        (order, customer) =>
+                        {
+                            order.Customer = customer;
+                            completeOrder[order.Id] = order;
+                            return order;
+                        }
+                    );
+                }
+                else if (_include == "products")
+                {
+                    IEnumerable<Order> orders = await conn.QueryAsync<Product, Order, Order>(
+                        sql,
+                        (product, order) =>
+                        {
+                            if (!completeOrder.ContainsKey(order.Id))
+                            {
+                                completeOrder[order.Id] = order;
+                            }
+                            
+                            completeOrder[order.Id].Products.Add(product);
+                            
+                            return order;
+
+                        }
+                    );
+                }
+
+
+                return Ok(completeOrder.Values);
             }
         }
 
