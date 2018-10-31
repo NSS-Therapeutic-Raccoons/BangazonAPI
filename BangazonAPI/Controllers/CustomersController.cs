@@ -45,7 +45,7 @@ namespace BangazonAPI.Controllers
         public async Task<IActionResult> Get(string q, string _include)
         {
             string sql;
-            if (_include != null && _include.Contains("payments"))
+            if (_include != null && _include == "payments")
             {
                 sql = @"
             SELECT
@@ -56,7 +56,7 @@ namespace BangazonAPI.Controllers
                 p.CustomerId,
                 p.Name    
             FROM Customer c
-            JOIN PaymentType p ON p.CustomerId = c.Id          
+            LEFT JOIN PaymentType p ON p.CustomerId = c.Id          
             WHERE 1=1
             ";
                 if (q != null)
@@ -68,7 +68,7 @@ namespace BangazonAPI.Controllers
                     sql = $"{sql} {isQ}";
                 }
             }
-            else if (_include != null && _include.Contains("products"))
+            else if (_include != null && _include == "products")
             {
                 sql = $@"
                 SELECT
@@ -81,7 +81,7 @@ namespace BangazonAPI.Controllers
                     pr.Price,
                     pr.Quantity
                 FROM Customer c
-                JOIN Product pr ON pr.CustomerId = c.Id
+                LEFT JOIN Product pr ON pr.CustomerId = c.Id
                 WHERE 1=1
                 ";
                 if (q != null)
@@ -112,10 +112,9 @@ namespace BangazonAPI.Controllers
                     sql = $"{sql} {isQ}";
                 }
             }
-            Console.WriteLine(sql);
             using (IDbConnection conn = Connection)
             {
-                if (_include != null && _include.Contains("payments"))
+                if (_include != null && _include == "payments")
                 {
                     Dictionary<int, Customer> customerPay = new Dictionary<int, Customer>();
                     IEnumerable<Customer> customers = await conn.QueryAsync<Customer, PaymentType, Customer>(
@@ -133,7 +132,7 @@ namespace BangazonAPI.Controllers
                 );
                     return Ok(customerPay.Values);
                 }
-                else if (_include != null && _include.Contains("products"))
+                else if (_include != null && _include == "products")
                 {
                     Dictionary<int, Customer> customerProduct = new Dictionary<int, Customer>();
                     IEnumerable<Customer> customers = await conn.QueryAsync<Customer, Product, Customer>(
@@ -163,7 +162,7 @@ namespace BangazonAPI.Controllers
         public async Task<IActionResult> Get([FromRoute]int id, string _include)
         {
             string sql;
-            if (_include != null && _include.Contains("payments"))
+            if (_include != null && _include == "payments")
             {
                 sql = $@"
             SELECT
@@ -174,12 +173,12 @@ namespace BangazonAPI.Controllers
                 p.CustomerId,
                 p.Name    
             FROM Customer c
-            JOIN PaymentType p ON p.CustomerId = c.Id          
+            LEFT JOIN PaymentType p ON p.CustomerId = c.Id          
             WHERE c.Id = {id}
             ";
 
             }
-            else if (_include != null && _include.Contains("products"))
+            else if (_include != null && _include == "products")
             {
                 sql = $@"
                 SELECT
@@ -192,8 +191,8 @@ namespace BangazonAPI.Controllers
                     pr.Price,
                     pr.Quantity
                 FROM Customer c
-                JOIN Product pr ON pr.CustomerId = c.Id
-            WHERE c.Id = {id}
+                LEFT JOIN Product pr ON pr.CustomerId = c.Id
+                WHERE c.Id = {id}
                 ";
             }
             else
@@ -204,13 +203,12 @@ namespace BangazonAPI.Controllers
                 c.FirstName,
                 c.LastName
             FROM Customer c
-              WHERE c.Id = {id}
+            WHERE c.Id = {id}
             ";
             }
-            Console.WriteLine(sql);
             using (IDbConnection conn = Connection)
             {
-                if (_include != null && _include.Contains("payments"))
+                if (_include != null && _include == "payments")
                 {
                     Dictionary<int, Customer> customerPay = new Dictionary<int, Customer>();
                     IEnumerable<Customer> customers = await conn.QueryAsync<Customer, PaymentType, Customer>(
@@ -227,7 +225,7 @@ namespace BangazonAPI.Controllers
                 );
                     return Ok(customerPay.Values);
                 }
-                else if (_include != null && _include.Contains("products"))
+                else if (_include != null && _include == "products")
                 {
                     Dictionary<int, Customer> customerProduct = new Dictionary<int, Customer>();
                     IEnumerable<Customer> customers = await conn.QueryAsync<Customer, Product, Customer>(
@@ -279,7 +277,7 @@ namespace BangazonAPI.Controllers
         {
             string sql = $@"
             UPDATE Customer
-            SET FirstName = '{customer.FirstName}',
+                SET FirstName = '{customer.FirstName}',
                 LastName = '{customer.LastName}'
             WHERE Id = {id}";
             try
@@ -305,23 +303,6 @@ namespace BangazonAPI.Controllers
                     throw;
                 }
             }
-        }
-        // DELETE api/customers/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
-        {
-            string sql = $@"DELETE FROM Customer WHERE Id = {id}";
-
-            using (IDbConnection conn = Connection)
-            {
-                int rowsAffected = await conn.ExecuteAsync(sql);
-                if (rowsAffected > 0)
-                {
-                    return new StatusCodeResult(StatusCodes.Status204NoContent);
-                }
-                throw new Exception("No rows affected");
-            }
-
         }
         private bool CustomerExists(int id)
         {
