@@ -1,11 +1,11 @@
 ﻿/*
     Author: Mike Parrish
     Purpose: API Controller that allows a client to: 
-            GET all Payment types from DB, 
-            GET a single payment type, 
-            POST a new payment type to the DB, 
-            PUT (edit) and existing payment type in the DB, and 
-            DELETE a payment type from the DB 
+            GET all employees from DB, 
+            GET a single employee type, 
+            POST a new employee to the DB, 
+            PUT (edit) and existing employee in the DB, and 
+            DELETE an employee from the DB 
  */
 
 using System;
@@ -24,11 +24,11 @@ namespace BangazonAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class PaymentTypesController : ControllerBase
+    public class EmployeesController : ControllerBase
     {
         private readonly IConfiguration _config;
 
-        public PaymentTypesController(IConfiguration config)
+        public EmployeesController(IConfiguration config)
         {
             _config = config;
         }
@@ -41,81 +41,87 @@ namespace BangazonAPI.Controllers
             }
         }
 
-        // GET api/paymenttypes
+        // GET api/employees
         [HttpGet]
         public async Task<IActionResult> Get()
         {
             string sql = @"
             SELECT
                 p.Id,
-                p.AcctNumber,
-                p.Name,
-                p.CustomerId
-            FROM PaymentType p
+                p.FirstName,
+                p.LastName,
+                p.DepartmentId
+                p.IsSuperVisor
+            FROM Employee p
             ";
 
             using (IDbConnection conn = Connection)
             {
 
-                IEnumerable<PaymentType> paymentTypes = await conn.QueryAsync<PaymentType>(
+                IEnumerable<Employee> employees = await conn.QueryAsync<Employee>(
                     sql
                 );
-                return Ok(paymentTypes);
+                return Ok(employees);
             }
         }
 
-        // GET api/paymenttypes/5
-        [HttpGet("{id}", Name = "GetPaymentType")]
+        // GET api/employees/5
+        [HttpGet("{id}", Name = "GetEmployee")]
         public async Task<IActionResult> Get([FromRoute]int id)
         {
             string sql = $@"
             SELECT
                 p.Id,
-                p.AcctNumber,
-                p.Name,
-                p.CustomerId
-            FROM PaymentType p
+                p.FirstName,
+                p.LastName,
+                p.DepartmentId
+                p.IsSuperVisor
+            FROM Employee p
             WHERE p.Id = {id}
             ";
 
             using (IDbConnection conn = Connection)
             {
-                IEnumerable<PaymentType> paymentTypes = await conn.QueryAsync<PaymentType>(sql);
-                return Ok(paymentTypes.Single());
+                IEnumerable<Employee> employees = await conn.QueryAsync<Employee>(sql);
+                return Ok(employees.Single());
             }
         }
 
-        // POST api/paymenttypes
+        // POST api/employees
         [HttpPost]
-        public async Task<IActionResult> Post([FromBody] PaymentType paymentType)
+        public async Task<IActionResult> Post([FromBody] Employee employees)
         {
-            string sql = $@"INSERT INTO PaymentType 
-            (AcctNumber, Name, CustomerId)
+            string sql = $@"INSERT INTO Employee 
+            (FirstName, LastName, DepartmentId, ComputerId, IsSuperVisor)
             VALUES
             (
-                '{paymentType.AcctNumber}'
-                ,'{paymentType.Name}'
-                ,'{paymentType.CustomerId}'
+                '{employees.FirstName}'
+                ,'{employees.LastName}'
+                ,'{employees.DepartmentId}'
+                ,'{employees.ComputerId}'
+                ,'{employees.IsSuperVisor}'
             );
             SELECT SCOPE_IDENTITY();";
 
             using (IDbConnection conn = Connection)
             {
                 var newId = (await conn.QueryAsync<int>(sql)).Single();
-                paymentType.Id = newId;
-                return CreatedAtRoute("GetPaymentType", new { id = newId }, paymentType);
+                employees.Id = newId;
+                return CreatedAtRoute("GetEmployee", new { id = newId }, employees);
             }
         }
 
-        // PUT api/paymenttypes/5
+        // PUT api/employees/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> Put(int id, [FromBody] PaymentType paymentType)
+        public async Task<IActionResult> Put(int id, [FromBody] Employee employees)
         {
             string sql = $@"
-            UPDATE PaymentType
-            SET AcctNumber = '{paymentType.AcctNumber}',
-                Name = '{paymentType.Name}',
-                CustomerId = '{paymentType.CustomerId}'
+            UPDATE Employee
+            SET FirstName = '{employees.FirstName}',
+                LastName = '{employees.LastName}',
+                DepartmentId = '{employees.DepartmentId}',
+                ComputerId = '{employees.ComputerId}',
+                IsSuperVisor = '{employees.IsSuperVisor}'
             WHERE Id = {id}";
 
             try
@@ -132,7 +138,7 @@ namespace BangazonAPI.Controllers
             }
             catch (Exception)
             {
-                if (!PaymentTypeExists(id))
+                if (!EmployeeExists(id))
                 {
                     return NotFound();
                 }
@@ -142,12 +148,12 @@ namespace BangazonAPI.Controllers
                 }
             }
         }
-
-        // DELETE api/paymenttypes/5
+        /* **Delete is not needed based on requirements of ticket**
+        // DELETE api/employees/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            string sql = $@"DELETE FROM PaymentType WHERE Id = {id}";
+            string sql = $@"DELETE FROM Employee WHERE Id = {id}";
 
             using (IDbConnection conn = Connection)
             {
@@ -160,15 +166,15 @@ namespace BangazonAPI.Controllers
             }
 
         }
+        */
 
-        private bool PaymentTypeExists(int id)
+        private bool EmployeeExists(int id)
         {
-            string sql = $"SELECT Id FROM PaymentType WHERE Id = {id}";
+            string sql = $"SELECT Id FROM Employee WHERE Id = {id}";
             using (IDbConnection conn = Connection)
             {
-                return conn.Query<PaymentType>(sql).Count() > 0;
+                return conn.Query<Employee>(sql).Count() > 0;
             }
         }
     }
 }
-
