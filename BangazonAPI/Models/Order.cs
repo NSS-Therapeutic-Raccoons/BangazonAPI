@@ -1,4 +1,11 @@
-﻿using System;
+/*
+    Author: Ricky Bruner
+    Purpose: Model for the Order class to represent products from the DB.
+    
+     ***Contains two foreign keys, CustomerId and PaymentTypeId.
+*/
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
