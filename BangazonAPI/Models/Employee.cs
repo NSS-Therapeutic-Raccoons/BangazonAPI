@@ -7,7 +7,7 @@
 
 using System.Collections.Generic;
 
-namespace BangazonAPI.Data
+namespace BangazonAPI.Models
 {
     public class Employee
     {

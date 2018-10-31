@@ -3,7 +3,6 @@
     Purpose: Model for the Customer class to represent products from the DB.
 */
 
-using BangazonAPI.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
