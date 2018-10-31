@@ -1,5 +1,5 @@
 ﻿/*
-    Author: Ricky Bruner
+    Author: Jeremiah Pritchard
     Purpose: Model for the Customer class to represent products from the DB.
 */
 
