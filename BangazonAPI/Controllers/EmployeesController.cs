@@ -112,7 +112,7 @@ namespace BangazonAPI.Controllers
                         return employee;
                     }
                 );
-                return Ok(employees);
+                return Ok(employees.Single());
             }
         }
 
