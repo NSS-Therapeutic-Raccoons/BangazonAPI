@@ -153,7 +153,7 @@ namespace BangazonAPI.Controllers
             VALUES
             (
                 '{departments.Name}',
-                '{departments.Budget}'
+                {departments.Budget}
             );
             SELECT SCOPE_IDENTITY();";
 
@@ -201,25 +201,7 @@ namespace BangazonAPI.Controllers
             }
         }
 
-        /*
-        // DELETE api/productTypes/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
-        {
-            string sql = $@"DELETE FROM ProductType WHERE Id = {id}";
-
-            using (IDbConnection conn = Connection)
-            {
-                int rowsAffected = await conn.ExecuteAsync(sql);
-                if (rowsAffected > 0)
-                {
-                    return new StatusCodeResult(StatusCodes.Status204NoContent);
-                }
-                throw new Exception("No rows affected");
-            }
-
-        }
-        */
+        
         private bool DepartmentExists(int id)
         {
             string sql = $"SELECT Id FROM Department WHERE Id = {id}";
