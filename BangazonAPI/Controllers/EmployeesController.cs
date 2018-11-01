@@ -47,12 +47,13 @@ namespace BangazonAPI.Controllers
         {
             string sql = @"
             SELECT
-                p.Id,
-                p.FirstName,
-                p.LastName,
-                p.DepartmentId
-                p.IsSuperVisor
-            FROM Employee p
+                e.Id,
+                e.FirstName,
+                e.LastName,
+                d.Name,
+                e.IsSuperVisor
+            FROM Employee e
+            JOIN Department d ON d.Id = e.DepartmentId
             ";
 
             using (IDbConnection conn = Connection)
@@ -71,13 +72,13 @@ namespace BangazonAPI.Controllers
         {
             string sql = $@"
             SELECT
-                p.Id,
-                p.FirstName,
-                p.LastName,
-                p.DepartmentId
-                p.IsSuperVisor
-            FROM Employee p
-            WHERE p.Id = {id}
+                e.Id,
+                e.FirstName,
+                e.LastName,
+                e.DepartmentId,
+                e.IsSuperVisor
+            FROM Employee e
+            WHERE e.Id = {id}
             ";
 
             using (IDbConnection conn = Connection)
@@ -92,13 +93,12 @@ namespace BangazonAPI.Controllers
         public async Task<IActionResult> Post([FromBody] Employee employees)
         {
             string sql = $@"INSERT INTO Employee 
-            (FirstName, LastName, DepartmentId, ComputerId, IsSuperVisor)
+            (FirstName, LastName, DepartmentId, IsSuperVisor)
             VALUES
             (
                 '{employees.FirstName}'
                 ,'{employees.LastName}'
                 ,'{employees.DepartmentId}'
-                ,'{employees.ComputerId}'
                 ,'{employees.IsSuperVisor}'
             );
             SELECT SCOPE_IDENTITY();";
@@ -120,7 +120,6 @@ namespace BangazonAPI.Controllers
             SET FirstName = '{employees.FirstName}',
                 LastName = '{employees.LastName}',
                 DepartmentId = '{employees.DepartmentId}',
-                ComputerId = '{employees.ComputerId}',
                 IsSuperVisor = '{employees.IsSuperVisor}'
             WHERE Id = {id}";
 

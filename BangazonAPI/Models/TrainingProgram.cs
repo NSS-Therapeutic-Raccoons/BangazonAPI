@@ -3,7 +3,6 @@
     Purpose: Model for the TrainingProgram class to represent products from the DB
 */
 
-using BangazonAPI.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
