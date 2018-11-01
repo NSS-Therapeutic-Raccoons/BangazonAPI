@@ -1,4 +1,4 @@
-﻿/*
+/*
     Author: Ricky Bruner
     Purpose: Model for the Order class to represent products from the DB.
     
@@ -14,14 +14,14 @@ namespace BangazonAPI.Models
 {
     public class Order
     {
-
+        
         public int Id { get; set; }
 
         public int CustomerId { get; set; }
 
-        public int PaymentTypeId { get; set; }
+        public int? PaymentTypeId { get; set; }
 
-        public Customer customer { get; set; }
+        public Customer Customer { get; set; }
 
         public List<Product> Products { get; set; } = new List<Product>();
     }
