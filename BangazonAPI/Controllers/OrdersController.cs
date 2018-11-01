@@ -1,12 +1,10 @@
 ﻿/*
     Author: Ricky Bruner
     Purpose: Allow a client to access database for orders in these ways:
-            1. GET:     user can get all orders, 
+            1. GET:     user can get all orders, with products attached
                         get completed or uncompleted oders by specifying ?_completed=true, ?_completed=false
-                        get orders products by specifying ?_include=products
                         get orders customer by specifying ?_include=customer
                         get orders by id with ...orders/5
-                        get orders by id with products by specifying ...orders/5?_include=products
                         get orders by id with customer by specifying ...orders/5?_include=customer
             2. POST:    user can post a new order to the database by passing in an order object that has an array            of products on it.
             3. PUT:     user can update an order with a payment type id
@@ -51,8 +49,7 @@ namespace BangazonAPI.Controllers
 
         // GET api/Orders returns all products
         //      api/orders?_completed=true OR api/orders?_completed=false
-        //      api/orders?_include=customer OR api/orders?_include=products
-        //      api/orders?_completed=true&_include=customer OR _completed=false&_include=products
+        //      api/orders?_completed=true&_include=customer OR _completed=false&_include=customer
         [HttpGet]
         public async Task<IActionResult> Get(bool? _completed, string _include)
         {
@@ -280,19 +277,12 @@ namespace BangazonAPI.Controllers
 
                 }
 
-                //List<Order> finalOrders = new List<Order>();
-                //foreach (KeyValuePair<int, Order> order in completeOrders)
-                //{
-                //    finalOrders.Add(order.Value);
-                //}
-
                 return Ok(completeOrders.Values);
             }
         }
 
         // GET api/Orders/1 returns order with given Id, 
         //     api/orders/1?_include=customer returns customer as well
-        //     api/orders/1?_include=products returns products as well
         [HttpGet("{id}", Name = "GetOrder")]
         public async Task<IActionResult> Get([FromRoute] int id, string _include)
         {
@@ -373,11 +363,20 @@ namespace BangazonAPI.Controllers
                 {
                     IEnumerable<Order> orders = await conn.QueryAsync<Product, Order, Customer, Order>(
                         sql,
-                        (order, customer) =>
+                        (product, order, customer) =>
                         {
+                            
                             order.Customer = customer;
-                            completeOrder[order.Id] = order;
+
+                            if (!completeOrder.ContainsKey(order.Id))
+                            {
+                                completeOrder[order.Id] = order;
+                            }
+
+                            completeOrder[order.Id].Products.Add(product);
+
                             return order;
+
                         }
                     );
                 }
