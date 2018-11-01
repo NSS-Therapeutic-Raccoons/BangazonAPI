@@ -89,7 +89,7 @@ namespace BangazonAPI.Controllers
             }
         }
 
-        // GET api/paymenttypes/5
+        // GET api/trainingProgram/5
         [HttpGet("{id}", Name = "GetTraining")]
         public async Task<IActionResult> Get([FromRoute]int id)
         {
@@ -126,25 +126,25 @@ namespace BangazonAPI.Controllers
             }
         }
 
-        // POST api/paymenttypes
+        // POST api/trainingPrograms
         [HttpPost]
-        public async Task<IActionResult> Post([FromBody] PaymentType paymentType)
+        public async Task<IActionResult> Post([FromBody] TrainingProgram trainingProgram)
         {
-            string sql = $@"INSERT INTO PaymentType 
-            (AcctNumber, Name, CustomerId)
+            string sql = $@"INSERT INTO TrainingProgram 
+            (StartDate, EndDate, MaxAttendees)
             VALUES
             (
-                '{paymentType.AcctNumber}'
-                ,'{paymentType.Name}'
-                ,'{paymentType.CustomerId}'
+                '{trainingProgram.StartDate}'
+                ,'{trainingProgram.EndDate}'
+                ,'{trainingProgram.MaxAttendees}'
             );
             SELECT SCOPE_IDENTITY();";
 
             using (IDbConnection conn = Connection)
             {
                 var newId = (await conn.QueryAsync<int>(sql)).Single();
-                paymentType.Id = newId;
-                return CreatedAtRoute("GetTraining", new { id = newId }, paymentType);
+                trainingProgram.Id = newId;
+                return CreatedAtRoute("GetTraining", new { id = newId }, trainingProgram);
             }
         }
 
