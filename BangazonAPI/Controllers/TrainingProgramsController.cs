@@ -1,4 +1,20 @@
-﻿using System;
+﻿/*
+  Author: Jeremiah Pritchard
+    Purpose: API Controller that allows a client to: 
+            GET all Training Programs from DB, 
+            GET a Training Program, 
+            POST a new Training Program to the DB, 
+            PUT (edit) and existing Training Program in the DB, and 
+            DELETE a Training Program from the DB 
+
+            ***Get all has filter 'completed=false' to show programs that have not been started yet and all gets will also who what employees are currently enrolled in training program.
+
+*/
+
+
+
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -150,13 +166,13 @@ namespace BangazonAPI.Controllers
 
         // PUT api/paymenttypes/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> Put(int id, [FromBody] PaymentType paymentType)
+        public async Task<IActionResult> Put(int id, [FromBody] TrainingProgram trainingProgram)
         {
             string sql = $@"
-            UPDATE PaymentType
-            SET AcctNumber = '{paymentType.AcctNumber}',
-                Name = '{paymentType.Name}',
-                CustomerId = '{paymentType.CustomerId}'
+            UPDATE TrainingProgram
+            SET StartDate = '{trainingProgram.StartDate}',
+                EndDate = '{trainingProgram.EndDate}',
+                MaxAttendees = '{trainingProgram.MaxAttendees}'
             WHERE Id = {id}";
 
             try
@@ -168,12 +184,12 @@ namespace BangazonAPI.Controllers
                     {
                         return new StatusCodeResult(StatusCodes.Status204NoContent);
                     }
-                    throw new Exception("No rows affected");
+                    throw new Exception("No rows affected and Program has not started yet.");
                 }
             }
             catch (Exception)
             {
-                if (!PaymentTypeExists(id))
+                if (!TrainingProgramExists(id))
                 {
                     return NotFound();
                 }
@@ -184,11 +200,17 @@ namespace BangazonAPI.Controllers
             }
         }
 
-        // DELETE api/paymenttypes/5
+        // DELETE api/trainingprograms/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            string sql = $@"DELETE FROM PaymentType WHERE Id = {id}";
+            string sql = $@"
+                            DELETE FROM TrainingProgram 
+                            WHERE Id = {id}";
+            sql = sql + "AND StartDate > CONVERT(DATETIME,{ fn CURDATE()});";
+
+            
+                            
 
             using (IDbConnection conn = Connection)
             {
@@ -202,9 +224,9 @@ namespace BangazonAPI.Controllers
 
         }
 
-        private bool PaymentTypeExists(int id)
+        private bool TrainingProgramExists(int id)
         {
-            string sql = $"SELECT Id FROM PaymentType WHERE Id = {id}";
+            string sql = $"SELECT Id FROM TrainingProgram WHERE Id = {id}";
             using (IDbConnection conn = Connection)
             {
                 return conn.Query<PaymentType>(sql).Count() > 0;
