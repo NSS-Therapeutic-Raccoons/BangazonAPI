@@ -257,3 +257,12 @@ INSERT INTO OrderProduct
 (OrderId, ProductId)
 VALUES
 (4, 2);
+
+
+INSERT INTO Department (Name, Budget) VALUES ('Navy', 400000000);
+
+INSERT INTO Department (Name, Budget) VALUES ('Music', 300000);
+
+INSERT INTO Department (Name, Budget) VALUES ('TechSupport', 7000000);
+
+INSERT INTO Department (Name, Budget) VALUES ('Management', 10000);
