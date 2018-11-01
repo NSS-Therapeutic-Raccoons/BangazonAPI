@@ -6,9 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using System.Data;
 using System.Data.SqlClient;
-using BangazonAPI.Data;
 using Dapper;
 using Microsoft.AspNetCore.Http;
+using BangazonAPI.Models;
 
 namespace BangazonAPI.Controllers
 {
@@ -35,43 +35,94 @@ namespace BangazonAPI.Controllers
         [HttpGet]
         public async Task<IActionResult> Get(bool? completed)
         {
-            string sql = @"
+            string sql;
+           if (completed == false) {
+                    sql = @"
             SELECT
                 tp.Id,
                 tp.StartDate,
-                tp.EndDate
+                tp.EndDate,
+                tp.MaxAttendees,
+                e.Id,
+                e.FirstName,
+                e.LastName
             FROM TrainingProgram tp
+            LEFT JOIN EmployeeTraining et ON tp.Id = et.TrainingProgramId
+            LEFT JOIN Employee e ON e.Id = et.EmployeeId
+            WHERE StartDate >=  CONVERT(DATETIME, {fn CURDATE()});
+            ";
+
+            }
+            else
+            {
+                sql = @"
+            SELECT
+                tp.Id,
+                tp.StartDate,
+                tp.EndDate,
+                tp.MaxAttendees,
+                e.Id,
+                e.FirstName,
+                e.LastName
+            FROM TrainingProgram tp
+            LEFT JOIN EmployeeTraining et ON tp.Id = et.TrainingProgramId
+            LEFT JOIN Employee e ON e.Id = et.EmployeeId
             WHERE 1=1
             ";
 
+            }
             using (IDbConnection conn = Connection)
             {
-
-                IEnumerable<PaymentType> paymentTypes = await conn.QueryAsync<PaymentType>(
-                    sql
-                );
-                return Ok(paymentTypes);
+                Dictionary<int, TrainingProgram> employeeTrain = new Dictionary<int, TrainingProgram>();
+                IEnumerable<TrainingProgram> customers = await conn.QueryAsync<TrainingProgram, Employee, TrainingProgram>(
+                sql,
+                (trainingprogram, employee) =>
+                {
+                    if (!employeeTrain.ContainsKey(trainingprogram.Id))
+                    {
+                        employeeTrain[trainingprogram.Id] = trainingprogram;
+                    }
+                    employeeTrain[trainingprogram.Id].Employees.Add(employee);
+                    return trainingprogram;
+                });
+                return Ok(employeeTrain.Values);
             }
         }
 
         // GET api/paymenttypes/5
-        [HttpGet("{id}", Name = "GetPaymentType")]
+        [HttpGet("{id}", Name = "GetTraining")]
         public async Task<IActionResult> Get([FromRoute]int id)
         {
             string sql = $@"
             SELECT
-                p.Id,
-                p.AcctNumber,
-                p.Name,
-                p.CustomerId
-            FROM PaymentType p
-            WHERE p.Id = {id}
+                tp.Id,
+                tp.StartDate,
+                tp.EndDate,
+                tp.MaxAttendees,
+                e.Id,
+                e.FirstName,
+                e.LastName
+            FROM TrainingProgram tp
+            LEFT JOIN EmployeeTraining et ON tp.Id = et.TrainingProgramId
+            LEFT JOIN Employee e ON e.Id = et.EmployeeId
+            WHERE tp.Id = {id}
             ";
 
             using (IDbConnection conn = Connection)
             {
-                IEnumerable<PaymentType> paymentTypes = await conn.QueryAsync<PaymentType>(sql);
-                return Ok(paymentTypes.Single());
+                Dictionary<int, TrainingProgram> employeeTrain = new Dictionary<int, TrainingProgram>();
+                IEnumerable<TrainingProgram> customers = await conn.QueryAsync<TrainingProgram, Employee, TrainingProgram>(
+                sql,
+                (trainingprogram, employee) =>
+                {
+                    if (!employeeTrain.ContainsKey(trainingprogram.Id))
+                    {
+                        employeeTrain[trainingprogram.Id] = trainingprogram;
+                    }
+                    employeeTrain[trainingprogram.Id].Employees.Add(employee);
+                    return trainingprogram;
+                });
+                return Ok(employeeTrain.Values);
             }
         }
 
@@ -93,7 +144,7 @@ namespace BangazonAPI.Controllers
             {
                 var newId = (await conn.QueryAsync<int>(sql)).Single();
                 paymentType.Id = newId;
-                return CreatedAtRoute("GetPaymentType", new { id = newId }, paymentType);
+                return CreatedAtRoute("GetTraining", new { id = newId }, paymentType);
             }
         }
 
