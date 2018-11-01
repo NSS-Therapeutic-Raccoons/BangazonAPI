@@ -137,14 +137,26 @@ CREATE TABLE OrderProduct (
 );
 
 
-
-
-
-INSERT INTO Customer (FirstName,LastName) VALUES ('George', 'Constanza');
-INSERT INTO Customer (FirstName,LastName) VALUES ('Jeremiah','Pritchard');
-INSERT INTO Customer (FirstName,LastName) VALUES ('Ricky','Bruner');
-INSERT INTO Customer (FirstName,LastName) VALUES ('Klaus','Hardt');
-INSERT INTO Customer (FirstName,LastName) VALUES ('Mike','Parrish');
+INSERT INTO Customer 
+(FirstName,LastName) 
+VALUES 
+('George', 'Constanza');
+INSERT INTO Customer 
+(FirstName,LastName) 
+VALUES 
+('Jeremiah','Pritchard');
+INSERT INTO Customer 
+(FirstName,LastName) 
+VALUES 
+('Ricky','Bruner');
+INSERT INTO Customer 
+(FirstName,LastName) 
+VALUES 
+('Klaus','Hardt');
+INSERT INTO Customer 
+(FirstName,LastName) 
+VALUES 
+('Mike','Parrish');
 
 
 INSERT INTO PaymentType 
@@ -167,11 +179,28 @@ INSERT INTO PaymentType
 VALUES 
 (147258369, 'MikeCard', 4);
 
-INSERT INTO ProductType (Name) VALUES ('Weapons');
-INSERT INTO ProductType (Name) VALUES ('DVDs');
-INSERT INTO ProductType (Name) VALUES ('CDs');
-INSERT INTO ProductType (Name) VALUES ('AircraftCarriers');
-INSERT INTO ProductType (Name) VALUES ('Books');
+
+INSERT INTO ProductType 
+(Name) 
+VALUES 
+('Weapons');
+INSERT INTO ProductType 
+(Name) 
+VALUES 
+('DVDs');
+INSERT INTO ProductType 
+(Name) 
+VALUES 
+('CDs');
+INSERT INTO ProductType 
+(Name)
+VALUES 
+('AircraftCarriers');
+INSERT INTO ProductType 
+(Name) 
+VALUES 
+('Books');
+
 
 INSERT INTO Product
 (ProductTypeId, CustomerId, Price, Title, [Description], Quantity)
@@ -193,7 +222,171 @@ INSERT INTO Product
 VALUES
 (4, 5, 79, 'Mike''s Delivery Plane', 'An aircraft carrier that deploys code all around the world', 2);
 
-INSERT INTO Department (Name, Budget) VALUES ('Navy', 400000000)
-INSERT INTO Department (Name, Budget) VALUES ('Music', 300000)
-INSERT INTO Department (Name, Budget) VALUES ('TechSupport', 7000000)
-INSERT INTO Department (Name, Budget) VALUES ('Management', 10000)
+
+INSERT INTO [Order]
+(CustomerId, PaymentTypeId)
+VALUES
+(3, 1);
+
+INSERT INTO [Order]
+(CustomerId, PaymentTypeId)
+VALUES
+(3, 2);
+
+INSERT INTO [Order]
+(CustomerId, PaymentTypeId)
+VALUES
+(4, 1);
+
+INSERT INTO [Order]
+(CustomerId, PaymentTypeId)
+VALUES
+(4, 2);
+
+
+INSERT INTO OrderProduct
+(OrderId, ProductId)
+VALUES
+(1, 2);
+
+INSERT INTO OrderProduct
+(OrderId, ProductId)
+VALUES
+(1, 1);
+
+INSERT INTO OrderProduct
+(OrderId, ProductId)
+VALUES
+(1, 3);
+
+INSERT INTO OrderProduct
+(OrderId, ProductId)
+VALUES
+(1, 4);
+
+INSERT INTO OrderProduct
+(OrderId, ProductId)
+VALUES
+(2, 1);
+
+INSERT INTO OrderProduct
+(OrderId, ProductId)
+VALUES
+(3, 1);
+
+INSERT INTO OrderProduct
+(OrderId, ProductId)
+VALUES
+(3, 1);
+
+INSERT INTO OrderProduct
+(OrderId, ProductId)
+VALUES
+(4, 1);
+
+INSERT INTO OrderProduct
+(OrderId, ProductId)
+VALUES
+(4, 2);
+
+
+INSERT INTO Department 
+(Name, Budget) 
+VALUES 
+('Navy', 400000000)
+INSERT INTO Department 
+(Name, Budget) 
+VALUES 
+('Music', 300000)
+INSERT INTO Department (
+Name, Budget) 
+VALUES 
+('TechSupport', 7000000)
+INSERT INTO Department 
+(Name, Budget) 
+VALUES 
+('Management', 10000)
+
+
+INSERT INTO Employee 
+(FirstName, LastName, DepartmentId, IsSuperVisor) 
+VALUES 
+('Mike', 'Parrish', 1, 'false');
+
+INSERT INTO Employee 
+(FirstName, LastName, DepartmentId, IsSuperVisor)
+VALUES 
+('Ricky', 'Bruner', 1, 'false');
+
+INSERT INTO Employee 
+(FirstName, LastName, DepartmentId, IsSuperVisor) 
+VALUES 
+('Jeremiah', 'Pritchard', 1, 'false');
+
+INSERT INTO Employee 
+(FirstName, LastName, DepartmentId, IsSuperVisor) 
+VALUES 
+('Klaus', 'Hardt', 1, 'false');
+
+INSERT INTO Employee 
+(FirstName, LastName, DepartmentId, IsSuperVisor) 
+VALUES 
+('Andy', 'Collins', 2, 'true');
+
+
+INSERT INTO Computer 
+(PurchaseDate, DecomissionDate) 
+VALUES 
+('170421 10:34:09 AM', null);
+
+INSERT INTO Computer 
+(PurchaseDate, DecomissionDate) 
+VALUES 
+('170422 10:34:09 AM', null);
+
+INSERT INTO Computer 
+(PurchaseDate, DecomissionDate) 
+VALUES 
+('170423 10:34:09 AM', null);
+
+INSERT INTO Computer 
+(PurchaseDate, DecomissionDate)
+VALUES 
+('170424 10:34:09 AM', null);
+
+INSERT INTO Computer 
+(PurchaseDate, DecomissionDate) 
+VALUES 
+('170425 10:34:09 AM', null);
+
+
+INSERT INTO ComputerEmployee 
+(EmployeeId, ComputerId, AssignDate)
+VALUES 
+(1, 5, 2018-10-2);
+
+INSERT INTO ComputerEmployee 
+(EmployeeId, ComputerId, AssignDate) 
+VALUES
+(2, 4, 2018-10-2);
+
+INSERT INTO ComputerEmployee 
+(EmployeeId, ComputerId, AssignDate) 
+VALUES 
+(3, 3, 2018-10-2);
+
+INSERT INTO ComputerEmployee 
+(EmployeeId, ComputerId, AssignDate) 
+VALUES 
+(4, 2, 2018-10-2);
+
+INSERT INTO ComputerEmployee 
+(EmployeeId, ComputerId, AssignDate) 
+VALUES 
+(5, 1, 2018-10-2);
+
+
+INSERT INTO TrainingProgram 
+(StartDate, EndDate, MaxAttendees) 
+VALUES 
+('170425 10:34:09 AM', '180618 10:34:09 AM', 15);
