@@ -89,24 +89,30 @@ namespace BangazonAPI.Controllers
                 e.LastName,
                 e.DepartmentId,
                 e.IsSuperVisor,
+                c.Id,
+                c.PurchaseDate,
+                c.DecomissionDate,
                 d.Id,
                 d.Name
             FROM Employee e
+            JOIN ComputerEmployee ce on ce.EmployeeId = e.Id
+            JOIN Computer c on c.Id = ce.ComputerId
             JOIN Department d ON d.Id = e.DepartmentId 
             WHERE e.Id = {id}
             ";
 
             using (IDbConnection conn = Connection)
             {
-                IEnumerable<Employee> employees = await conn.QueryAsync<Employee, Department, Employee>(
+                IEnumerable<Employee> employees = await conn.QueryAsync<Employee, Computer, Department, Employee>(
                     sql,
-                    (employee, department) =>
+                    (employee, computer, department) =>
                     {
                         employee.DepartmentName = department.Name;
+                        employee.Computer = computer;
                         return employee;
                     }
                 );
-                return Ok(employees.Single());
+                return Ok(employees);
             }
         }
 
