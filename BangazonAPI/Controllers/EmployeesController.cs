@@ -58,8 +58,8 @@ namespace BangazonAPI.Controllers
                 d.Id,
                 d.Name
             FROM Employee e
-            JOIN ComputerEmployee ce on ce.EmployeeId = e.Id
-            JOIN Computer c on c.Id = ce.ComputerId
+            LEFT JOIN ComputerEmployee ce on ce.EmployeeId = e.Id
+            LEFT JOIN Computer c on c.Id = ce.ComputerId
             JOIN Department d ON d.Id = e.DepartmentId 
             ";
 
@@ -95,8 +95,8 @@ namespace BangazonAPI.Controllers
                 d.Id,
                 d.Name
             FROM Employee e
-            JOIN ComputerEmployee ce on ce.EmployeeId = e.Id
-            JOIN Computer c on c.Id = ce.ComputerId
+            LEFT JOIN ComputerEmployee ce on ce.EmployeeId = e.Id
+            LEFT JOIN Computer c on c.Id = ce.ComputerId
             JOIN Department d ON d.Id = e.DepartmentId 
             WHERE e.Id = {id}
             ";
@@ -135,7 +135,19 @@ namespace BangazonAPI.Controllers
             {
                 var newId = (await conn.QueryAsync<int>(sql)).Single();
                 employees.Id = newId;
-                return CreatedAtRoute("GetEmployee", new { id = newId }, employees);
+                /* string newSQL = $@"
+                        INSERT INTO ComputerEmployee
+                        (EmployeeId, ComputerId)
+                        VALUES
+                        (
+                            {employees.Id},
+                            {employees.Computer.Id}
+                        );
+                    ";
+
+                await conn.QueryAsync<int>(newSQL); */
+
+            return CreatedAtRoute("GetEmployee", new { id = newId }, employees);
             }
         }
 
