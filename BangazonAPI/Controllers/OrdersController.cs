@@ -1,4 +1,19 @@
-﻿using System;
+﻿/*
+    Author: Ricky Bruner
+    Purpose: Allow a client to access database for orders in these ways:
+            1. GET:     user can get all orders, 
+                        get completed or uncompleted oders by specifying ?_completed=true, ?_completed=false
+                        get orders products by specifying ?_include=products
+                        get orders customer by specifying ?_include=customer
+                        get orders by id with ...orders/5
+                        get orders by id with products by specifying ...orders/5?_include=products
+                        get orders by id with customer by specifying ...orders/5?_include=customer
+            2. POST:    user can post a new order to the database by passing in an order object that has an array            of products on it.
+            3. PUT:     user can update an order with a payment type id
+            4. DELETE:  User can remove an order from the database, and all OrderProducts will be removed as well.
+*/
+
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
@@ -35,6 +50,9 @@ namespace BangazonAPI.Controllers
         }
 
         // GET api/Orders returns all products
+        //      api/orders?_completed=true OR api/orders?_completed=false
+        //      api/orders?_include=customer OR api/orders?_include=products
+        //      api/orders?_completed=true&_include=customer OR _completed=false&_include=products
         [HttpGet]
         public async Task<IActionResult> Get(bool? _completed, string _include)
         {
@@ -279,7 +297,9 @@ namespace BangazonAPI.Controllers
             }
         }
 
-        // GET api/Orders/1 returns order with given Id
+        // GET api/Orders/1 returns order with given Id, 
+        //     api/orders/1?_include=customer returns customer as well
+        //     api/orders/1?_include=products returns products as well
         [HttpGet("{id}", Name = "GetOrder")]
         public async Task<IActionResult> Get([FromRoute] int id, string _include)
         {
@@ -375,42 +395,65 @@ namespace BangazonAPI.Controllers
                         }
                     );
                 }
-
-
-                return Ok(completeOrder.Values);
+                return Ok(completeOrder.Values.Single());
             }
         }
 
-        // POST api/Orders adds a new Order
+        // POST api/orders adds a new order, will only work if given products with the order, and will create OrderProducts
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] Order order)
         {
-            string sql = $@"INSERT INTO [Order] 
-            (CustomerId, PaymentTypeId)
-            VALUES
-            (
-                '{order.CustomerId}',
-                '{order.PaymentTypeId}'
-            );
-            SELECT SCOPE_IDENTITY();";
+            string sql = $@"
+                INSERT INTO [Order] 
+                (CustomerId, PaymentTypeId)
+                VALUES
+                (
+                    '{order.CustomerId}',
+                    NULL
+                );
+                SELECT SCOPE_IDENTITY();
+                ";
+
 
             using (IDbConnection conn = Connection)
             {
                 var newId = (await conn.QueryAsync<int>(sql)).Single();
                 order.Id = newId;
+
+                string newSQL = "";
+
+                foreach (Product product in order.Products)
+                {
+                    
+                    newSQL = $@"
+                        INSERT INTO OrderProduct
+                        (OrderId, ProductId)
+                        VALUES
+                        (
+                            '{order.Id}',
+                            '{product.Id}'
+                        );
+                    ";
+
+                    await conn.QueryAsync<int>(newSQL);
+
+                }
+
                 return CreatedAtRoute("GetOrder", new { id = newId }, order);
+
             }
         }
 
-        // PUT api/Orders/5 replaces a Order with the given Id
+        // PUT api/Orders/5 replaces a Order with the given Id to update payment type
         [HttpPut("{id}")]
         public async Task<IActionResult> Put(int id, [FromBody] Order order)
         {
             string sql = $@"
-            UPDATE [Order]
-            SET CustomerId = '{order.CustomerId}',
-                PaymentTypeId= '{order.PaymentTypeId}',
-            WHERE Id = {id}";
+                UPDATE [Order]
+                SET CustomerId = {order.CustomerId},
+                    PaymentTypeId = {order.PaymentTypeId}
+                WHERE Id = {id}
+            ";
 
             try
             {
@@ -437,11 +480,14 @@ namespace BangazonAPI.Controllers
             }
         }
 
-        // DELETE api/Orders/5 removes the Order with the given Id
+        // DELETE api/orders/1 removes the order with the given Id, after removing associated OrderProducts first
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            string sql = $@"DELETE FROM [Order] WHERE Id = {id}";
+            string sql = $@"
+                    DELETE FROM OrderProduct WHERE OrderId = {id};
+                    DELETE FROM [Order] WHERE Id = {id};
+                ";
 
             using (IDbConnection conn = Connection)
             {
