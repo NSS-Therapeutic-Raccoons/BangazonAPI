@@ -193,3 +193,7 @@ INSERT INTO Product
 VALUES
 (4, 5, 79, 'Mike''s Delivery Plane', 'An aircraft carrier that deploys code all around the world', 2);
 
+INSERT INTO Department (Name, Budget) VALUES ('Navy', 400000000)
+INSERT INTO Department (Name, Budget) VALUES ('Music', 300000)
+INSERT INTO Department (Name, Budget) VALUES ('TechSupport', 7000000)
+INSERT INTO Department (Name, Budget) VALUES ('Management', 10000)

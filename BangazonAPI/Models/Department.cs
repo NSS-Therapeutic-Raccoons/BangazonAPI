@@ -1,6 +1,7 @@
 ﻿//author: Klaus Hardt
 //purpose: Department model. Employee commented out due to not having Employee model
 
+using BangazonAPI.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;

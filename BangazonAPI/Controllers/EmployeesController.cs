@@ -50,17 +50,25 @@ namespace BangazonAPI.Controllers
                 e.Id,
                 e.FirstName,
                 e.LastName,
-                d.Name,
-                e.IsSuperVisor
+                e.DepartmentId,
+                e.ComputerId,
+                e.IsSuperVisor,
+                d.Id,
+                d.Name
             FROM Employee e
-            JOIN Department d ON d.Id = e.DepartmentId
+            JOIN Department d ON d.Id = e.DepartmentId 
+            JOIN Computer c on c.Id = e.ComputerId
             ";
 
             using (IDbConnection conn = Connection)
             {
-
-                IEnumerable<Employee> employees = await conn.QueryAsync<Employee>(
-                    sql
+                IEnumerable<Employee> employees = await conn.QueryAsync<Employee, Department, Employee>(
+                    sql,
+                    (employee, department) =>
+                    {
+                        employee.DepartmentName = department.Name;
+                        return employee;
+                    }
                 );
                 return Ok(employees);
             }
@@ -76,14 +84,24 @@ namespace BangazonAPI.Controllers
                 e.FirstName,
                 e.LastName,
                 e.DepartmentId,
-                e.IsSuperVisor
+                e.IsSuperVisor,
+                d.Id,
+                d.Name
             FROM Employee e
+            JOIN Department d ON d.Id = e.DepartmentId 
             WHERE e.Id = {id}
             ";
 
             using (IDbConnection conn = Connection)
             {
-                IEnumerable<Employee> employees = await conn.QueryAsync<Employee>(sql);
+                IEnumerable<Employee> employees = await conn.QueryAsync<Employee, Department, Employee>(
+                    sql,
+                    (employee, department) =>
+                    {
+                        employee.DepartmentName = department.Name;
+                        return employee;
+                    }
+                );
                 return Ok(employees.Single());
             }
         }
