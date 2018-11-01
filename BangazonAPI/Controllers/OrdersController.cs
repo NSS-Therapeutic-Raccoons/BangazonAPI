@@ -62,20 +62,38 @@ namespace BangazonAPI.Controllers
             {
                 sql = @"
                     SELECT
+                        p.Id,
+                        p.ProductTypeId,
+                        p.CustomerId,
+                        p.Price,
+                        p.Title,
+                        p.Description,
+                        p.Quantity,
                         o.Id,
                         o.PaymentTypeId,
                         o.CustomerId
-                    FROM [Order] o
+                    FROM Product p
+                    JOIN OrderProduct op ON p.Id = op.ProductId
+                    JOIN [Order] o ON o.Id = op.OrderId
                 ";
             }
             else if (_completed != null && _include == null)
             {
                 sql = @"
                     SELECT
+                        p.Id,
+                        p.ProductTypeId,
+                        p.CustomerId,
+                        p.Price,
+                        p.Title,
+                        p.Description,
+                        p.Quantity,
                         o.Id,
                         o.PaymentTypeId,
                         o.CustomerId
-                    FROM [Order] o
+                    FROM Product p
+                    JOIN OrderProduct op ON p.Id = op.ProductId
+                    JOIN [Order] o ON o.Id = op.OrderId
                     WHERE 1=1
                 ";
 
@@ -96,7 +114,30 @@ namespace BangazonAPI.Controllers
             }
             else if (_completed == null && _include != null)
             {
-                if (_include == "products")
+                if (_include == "customer")
+                {
+                    sql = @"
+                        SELECT
+                            p.Id,
+                            p.ProductTypeId,
+                            p.CustomerId,
+                            p.Price,
+                            p.Title,
+                            p.Description,
+                            p.Quantity,
+                            o.Id,
+                            o.PaymentTypeId,
+                            o.CustomerId,
+                            c.Id,
+                            c.FirstName,
+                            c.LastName
+                        FROM Product p
+                        JOIN OrderProduct op ON p.Id = op.ProductId
+                        JOIN [Order] o ON o.Id = op.OrderId
+                        JOIN Customer c ON c.Id = o.CustomerId
+                    ";
+                }
+                else
                 {
                     sql = @"
                         SELECT
@@ -115,34 +156,10 @@ namespace BangazonAPI.Controllers
                         JOIN [Order] o ON o.Id = op.OrderId
                     ";
                 }
-                else if (_include == "customer")
-                {
-                    sql = @"
-                        SELECT
-                            o.Id,
-                            o.PaymentTypeId,
-                            o.CustomerId,
-                            c.Id,
-                            c.FirstName,
-                            c.LastName
-                        FROM [Order] o
-                        JOIN Customer c ON c.Id = o.CustomerId
-                    ";
-                }
-                else
-                {
-                    sql = @"
-                        SELECT
-                            o.Id,
-                            o.PaymentTypeId,
-                            o.CustomerId
-                        FROM [Order] o
-                    ";
-                }
             }
             else if (_completed != null && _include != null)
             {
-                if (_include == "products")
+                if (_include == "customer")
                 {
                     sql = @"
                         SELECT
@@ -151,47 +168,17 @@ namespace BangazonAPI.Controllers
                             p.CustomerId,
                             p.Price,
                             p.Title,
-                            p.[Description],
+                            p.Description,
                             p.Quantity,
-                            o.Id,
-                            o.PaymentTypeId,
-                            o.CustomerId
-                        FROM Product p
-                        JOIN OrderProduct op ON p.Id = op.ProductId
-                        JOIN [Order] o ON o.Id = op.OrderId
-                        WHERE 1=1
-                    ";
-
-                    if (_completed == false)
-                    {
-                        string isComplete = $@"
-                            AND o.PaymentTypeId IS NULL
-                        ";
-
-                        sql = $"{sql} {isComplete}";
-
-                    }
-                    else
-                    {
-                        string isComplete = $@"
-                            AND o.PaymentTypeId IS NOT NULL
-                        ";
-
-                        sql = $"{sql} {isComplete}";
-
-                    }
-                }
-                else if (_include == "customer")
-                {
-                    sql = @"
-                        SELECT
                             o.Id,
                             o.PaymentTypeId,
                             o.CustomerId,
                             c.Id,
                             c.FirstName,
                             c.LastName
-                        FROM [Order] o
+                        FROM Product p
+                        JOIN OrderProduct op ON p.Id = op.ProductId
+                        JOIN [Order] o ON o.Id = op.OrderId
                         JOIN Customer c ON c.Id = o.CustomerId
                         WHERE 1=1
                     ";
@@ -219,10 +206,19 @@ namespace BangazonAPI.Controllers
                 {
                     sql = @"
                         SELECT
+                            p.Id,
+                            p.ProductTypeId,
+                            p.CustomerId,
+                            p.Price,
+                            p.Title,
+                            p.Description,
+                            p.Quantity,
                             o.Id,
                             o.PaymentTypeId,
                             o.CustomerId
-                        FROM [Order] o
+                        FROM Product p
+                        JOIN OrderProduct op ON p.Id = op.ProductId
+                        JOIN [Order] o ON o.Id = op.OrderId
                         WHERE 1 = 1
                     ";
 
@@ -251,7 +247,23 @@ namespace BangazonAPI.Controllers
             {
                 Dictionary<int, Order> completeOrders = new Dictionary<int, Order>();
 
-                if (_include != null && _include == "products")
+                if (_include == "customer")
+                {
+                    IEnumerable<Order> orders = await conn.QueryAsync<Product, Order, Customer, Order>(
+                        sql,
+                        (product, order, customer) =>
+                        {
+                            order.Customer = customer;
+                            if (!completeOrders.ContainsKey(order.Id))
+                            {
+                                completeOrders[order.Id] = order;
+                            }
+                            completeOrders[order.Id].Products.Add(product);
+                            return order;
+                        }
+                    );
+                }
+                else if (_include == null)
                 {
                     IEnumerable<Order> orders = await conn.QueryAsync<Product, Order, Order>(
                         sql,
@@ -265,35 +277,16 @@ namespace BangazonAPI.Controllers
                             return order;
                         }
                     );
-                }
-                else if (_include != null && _include == "customer")
-                {
-                    IEnumerable<Order> orders = await conn.QueryAsync<Order, Customer, Order>(
-                        sql,
-                        (order, customer) =>
-                        {
-                            order.Customer = customer;
-                            completeOrders[order.Id] = order;
-                            return order;
-                        }
-                    );
-                }
-                else if (_include == null)
-                {
-                    IEnumerable<Order> orders = await conn.QueryAsync<Order>(sql);
-                    foreach (Order order in orders) {
-                        completeOrders[order.Id] = order;
-                    };
-                
+
                 }
 
-                List<Order> finalOrders = new List<Order>();
-                foreach (KeyValuePair<int, Order> order in completeOrders)
-                {
-                    finalOrders.Add(order.Value);
-                }
+                //List<Order> finalOrders = new List<Order>();
+                //foreach (KeyValuePair<int, Order> order in completeOrders)
+                //{
+                //    finalOrders.Add(order.Value);
+                //}
 
-                return Ok(finalOrders);
+                return Ok(completeOrders.Values);
             }
         }
 
@@ -308,29 +301,26 @@ namespace BangazonAPI.Controllers
             {
                 sql = $@"
                     SELECT
+                        p.Id,
+                        p.ProductTypeId,
+                        p.CustomerId,
+                        p.Price,
+                        p.Title,
+                        p.Description,
+                        p.Quantity,
                         o.Id,
                         o.PaymentTypeId,
                         o.CustomerId
-                    FROM [Order] o
+                        c.Id,
+                        c.FirstName,
+                        c.LastName
+                    FROM Product p
+                    JOIN OrderProduct op ON p.Id = op.ProductId
+                    JOIN [Order] o ON o.Id = op.OrderId
                     WHERE o.Id = {id}
                 ";
             }
             else if (_include == "customer")
-            {
-                sql = $@"
-                    SELECT
-                        o.Id,
-                        o.PaymentTypeId,
-                        o.CustomerId,
-                        c.Id,
-                        c.FirstName,
-                        c.LastName
-                    FROM [Order] o
-                    JOIN Customer c ON c.Id = o.CustomerId
-                    WHERE o.Id = {id}
-                ";
-            }
-            else if (_include == "products")
             {
                 sql = $@"
                     SELECT
@@ -339,14 +329,18 @@ namespace BangazonAPI.Controllers
                         p.CustomerId,
                         p.Price,
                         p.Title,
-                        p.[Description],
+                        p.Description,
                         p.Quantity,
                         o.Id,
                         o.PaymentTypeId,
-                        o.CustomerId
+                        o.CustomerId,
+                        c.Id,
+                        c.FirstName,
+                        c.LastName
                     FROM Product p
                     JOIN OrderProduct op ON p.Id = op.ProductId
                     JOIN [Order] o ON o.Id = op.OrderId
+                    JOIN Customer c ON c.Id = o.CustomerId
                     WHERE o.Id = {id}
                 ";
             }
@@ -359,15 +353,25 @@ namespace BangazonAPI.Controllers
 
                 if (_include == null)
                 {
-                    IEnumerable<Order> orders = await conn.QueryAsync<Order>(sql);
-                    foreach (Order order in orders)
-                    {
-                        completeOrder[order.Id] = order;
-                    }
+                    IEnumerable<Order> orders = await conn.QueryAsync<Product, Order, Order>(
+                        sql,
+                        (product, order) =>
+                        {
+                            if (!completeOrder.ContainsKey(order.Id))
+                            {
+                                completeOrder[order.Id] = order;
+                            }
+
+                            completeOrder[order.Id].Products.Add(product);
+
+                            return order;
+
+                        }
+                    );
                 }
                 else if (_include == "customer")
                 {
-                    IEnumerable<Order> orders = await conn.QueryAsync<Order, Customer, Order>(
+                    IEnumerable<Order> orders = await conn.QueryAsync<Product, Order, Customer, Order>(
                         sql,
                         (order, customer) =>
                         {
@@ -377,24 +381,7 @@ namespace BangazonAPI.Controllers
                         }
                     );
                 }
-                else if (_include == "products")
-                {
-                    IEnumerable<Order> orders = await conn.QueryAsync<Product, Order, Order>(
-                        sql,
-                        (product, order) =>
-                        {
-                            if (!completeOrder.ContainsKey(order.Id))
-                            {
-                                completeOrder[order.Id] = order;
-                            }
-                            
-                            completeOrder[order.Id].Products.Add(product);
-                            
-                            return order;
-
-                        }
-                    );
-                }
+                
                 return Ok(completeOrder.Values.Single());
             }
         }
