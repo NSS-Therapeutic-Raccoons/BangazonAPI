@@ -3,7 +3,11 @@
     Purpose: Model for TrainingProgram class to represent training programs from the DB.  
 */
 
+<<<<<<< HEAD
 
+=======
+using BangazonAPI.Models;
+>>>>>>> master
 using System;
 using System.Collections.Generic;
 using System.Linq;
