@@ -293,19 +293,22 @@ VALUES
 INSERT INTO Department 
 (Name, Budget) 
 VALUES 
-('Navy', 400000000)
+('Navy', 400000000);
+
 INSERT INTO Department 
 (Name, Budget) 
 VALUES 
-('Music', 300000)
+('Music', 300000);
+
 INSERT INTO Department (
 Name, Budget) 
 VALUES 
-('TechSupport', 7000000)
+('TechSupport', 7000000);
+
 INSERT INTO Department 
 (Name, Budget) 
 VALUES 
-('Management', 10000)
+('Management', 10000);
 
 
 INSERT INTO Employee 
